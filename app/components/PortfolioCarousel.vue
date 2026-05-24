@@ -274,7 +274,7 @@ const getHoverIndex = (offset) => {
       <Transition name="fade-instant">
         <div
           v-if="isModalOpen"
-          class="absolute inset-x-0 -top-[7rem] bottom-0 flex items-start justify-center z-50 overflow-visible"
+          class="absolute inset-x-0 -top-[calc(7rem-25px)] bottom-0 flex items-start justify-center z-50 overflow-visible"
         >
           <PortfolioProjectModal
             v-model="isModalOpen"
