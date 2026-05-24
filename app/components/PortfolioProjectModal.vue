@@ -7,10 +7,6 @@ const props = defineProps({
   project: {
     type: Object,
     default: () => null
-  },
-  sectionTitle: {
-    type: String,
-    default: ''
   }
 })
 
@@ -39,100 +35,78 @@ const displayProject = computed(() => {
   <UModal
     :model-value="modelValue"
     :ui="{
-      width: 'w-screen max-w-[calc(100vw-100px)]',
-      height: 'h-screen max-h-[100vh]',
-      container: 'flex items-start justify-center p-0',
+      width: 'w-full sm:max-w-[calc(100vw-var(--nav-width)*2)]',
+      height: 'h-[90vh]',
+      container: 'flex items-center justify-center p-4',
       base: 'relative overflow-hidden flex flex-col',
-      background: 'bg-[#05070f]',
-      ring: '',
-      rounded: 'rounded-none',
+      background: 'bg-[#0a0f1e]',
+      ring: 'ring-1 ring-[rgba(116,245,255,0.2)]',
+      rounded: 'rounded-3xl',
       overlay: {
-        background: 'bg-[#05070f]/98 backdrop-blur-3xl'
+        background: 'bg-[#05070f]/80 backdrop-blur-xl'
       }
     }"
     class="portfolio-project-modal"
     @update:model-value="val => emit('update:modelValue', val)"
   >
-    <div class="project-modal p-6 sm:p-16 text-[#e8f7ff] overflow-y-auto h-full">
-      <!-- HEADER: CENTERED Project Title & Symmetrical Section Sub-title -->
-      <header class="flex flex-col items-center justify-center mb-16 sticky top-0 bg-[#05070f]/80 backdrop-blur-md py-6 z-10 w-full">
-        <!-- Close button fixed top-right -->
+    <div class="project-modal p-6 sm:p-12 text-[#e8f7ff] overflow-y-auto h-full">
+      <header class="flex justify-between items-start mb-12 sticky top-0 bg-[#0a0f1e] py-4 z-10">
+        <div>
+          <h2 class="text-4xl sm:text-5xl font-black tracking-tighter uppercase text-(--accent)">
+            {{ displayProject.title }}
+          </h2>
+          <p class="text-[var(--muted)] mt-2 uppercase tracking-[0.3em] text-xs font-bold">
+            Project Deep-Dive
+          </p>
+        </div>
         <UButton
           icon="i-lucide-x"
           color="neutral"
           variant="ghost"
           size="xl"
-          class="absolute right-0 top-6 rounded-2xl hover:bg-(--accent) hover:text-black scale-150 transition-all duration-300 z-20"
+          class="rounded-full hover:bg-[var(--accent)] hover:text-[#000] -mt-2"
           @click="closeModal"
         />
-
-        <div class="flex flex-col items-center text-center max-w-5xl w-full">
-          <h2 class="text-4xl sm:text-7xl font-black tracking-tighter uppercase text-(--accent) leading-none mb-4">
-            {{ displayProject.title }}
-          </h2>
-          
-          <!-- Symmetrical Lines around Section Subtitle -->
-          <div class="flex items-center justify-center gap-6 w-full max-w-2xl">
-            <span class="flex-1 h-px bg-gradient-to-l from-(--accent) to-transparent opacity-40" />
-            <p class="text-(--muted) uppercase tracking-[0.5em] text-xs font-black opacity-80 whitespace-nowrap">
-              {{ sectionTitle === 'Technical Project' ? 'Technical Project' : sectionTitle }}
-            </p>
-            <span class="flex-1 h-px bg-gradient-to-r from-(--accent) to-transparent opacity-40" />
-          </div>
-        </div>
       </header>
 
-      <!-- Original 2-column Grid Shape -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 sm:gap-24">
-        <!-- Main Content Area (Left side) -->
-        <div class="lg:col-span-8 space-y-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 sm:gap-16">
+        <!-- Main Content Area -->
+        <div class="lg:col-span-7 space-y-12">
           <section>
-            <h3 class="text-xs font-black text-(--accent) uppercase mb-6 tracking-[0.5em] flex items-center gap-4">
-              <span class="w-12 h-px bg-(--accent)" /> Mission Objective
+            <h3 class="text-xs font-black text-[var(--accent)] uppercase mb-4 tracking-[0.4em] flex items-center gap-3">
+              <span class="w-8 h-[1px] bg-[var(--accent)]" /> Overview
             </h3>
-            <p class="text-2xl sm:text-4xl leading-tight text-white font-light">
+            <p class="text-xl sm:text-2xl leading-relaxed text-[#fff] font-light">
               {{ displayProject.description }}
             </p>
           </section>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-16">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-12">
             <section>
-              <h3 class="text-xs font-black text-(--accent) uppercase mb-6 tracking-[0.5em] flex items-center gap-4">
-                <span class="w-8 h-px bg-(--accent)" /> Neural Link
+              <h3 class="text-xs font-black text-[var(--accent)] uppercase mb-4 tracking-[0.4em] flex items-center gap-3">
+                <span class="w-6 h-[1px] bg-[var(--accent)]" /> Skills
               </h3>
-              <p class="text-(--muted) leading-relaxed text-xl font-light">
+              <p class="text-[var(--muted)] leading-relaxed text-lg">
                 {{ displayProject.learned }}
               </p>
             </section>
 
             <section>
-              <h3 class="text-xs font-black text-(--accent) uppercase mb-6 tracking-[0.5em] flex items-center gap-4">
-                <span class="w-8 h-px bg-(--accent)" /> Tactical Execution
+              <h3 class="text-xs font-black text-[var(--accent)] uppercase mb-4 tracking-[0.4em] flex items-center gap-3">
+                <span class="w-6 h-[1px] bg-[var(--accent)]" /> Execution
               </h3>
-              <p class="text-(--muted) leading-relaxed text-xl font-light">
+              <p class="text-[var(--muted)] leading-relaxed text-lg">
                 {{ displayProject.done }}
               </p>
             </section>
           </div>
-
-          <div v-if="displayProject.link" class="pt-10">
-            <a
-              :href="displayProject.link"
-              target="_blank"
-              class="text-sm text-(--accent) flex items-center gap-4 group font-black tracking-[0.3em] hover:opacity-70 transition-opacity"
-            >
-              <span class="w-4 h-px bg-(--accent)" />
-              ACCESS PROJECT SOURCE
-              <UIcon name="i-lucide-arrow-up-right" class="text-xs" />
-            </a>
-          </div>
         </div>
 
-        <!-- Sidebar Area: Media (Right side) -->
-        <div class="lg:col-span-4 space-y-12">
+        <!-- Sidebar / Media Area -->
+        <div class="lg:col-span-5 space-y-10">
           <div
             v-if="displayProject.youtube"
-            class="aspect-video rounded-3xl overflow-hidden bg-black shadow-[0_0_100px_rgba(116,245,255,0.15)] ring-1 ring-(--accent)/10"
+            class="aspect-video rounded-3xl overflow-hidden ring-1 ring-[var(--accent)]/30 shadow-[0_0_50px_rgba(110,61,255,0.2)] bg-[#000]"
           >
             <iframe
               width="100%"
@@ -144,6 +118,38 @@ const displayProject = computed(() => {
               allowfullscreen
             />
           </div>
+
+          <div class="bg-[rgba(116,245,255,0.02)] p-8 rounded-3xl border border-[rgba(116,245,255,0.08)] backdrop-blur-sm">
+            <h4 class="text-[10px] font-black text-[var(--accent)] uppercase mb-6 tracking-[0.5em]">
+              System Specs
+            </h4>
+            <div class="space-y-6">
+              <div
+                v-if="displayProject.link"
+                class="flex justify-between items-center group"
+              >
+                <span class="text-xs text-[var(--muted)] uppercase tracking-widest font-bold">Repository</span>
+                <a
+                  :href="displayProject.link"
+                  target="_blank"
+                  class="text-sm text-[var(--accent)] flex items-center gap-2 group-hover:underline"
+                >
+                  SOURCE <UIcon
+                    name="i-lucide-arrow-up-right"
+                    class="text-xs"
+                  />
+                </a>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-[var(--muted)] uppercase tracking-widest font-bold">Year</span>
+                <span class="text-sm text-[#fff] font-mono">2026</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-[var(--muted)] uppercase tracking-widest font-bold">Category</span>
+                <span class="text-sm text-white uppercase tracking-tighter">High-End Development</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -151,6 +157,7 @@ const displayProject = computed(() => {
 </template>
 
 <style>
+/* Global-level override for the modal portal to ensure it stays below the nav */
 .portfolio-project-modal {
   z-index: 10000 !important;
 }
@@ -167,9 +174,5 @@ const displayProject = computed(() => {
 .project-modal::-webkit-scrollbar-thumb {
   background-color: var(--accent);
   border-radius: 10px;
-}
-
-h2, h3 {
-  text-shadow: 0 0 40px rgba(116, 245, 255, 0.25);
 }
 </style>
