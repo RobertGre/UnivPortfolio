@@ -20,17 +20,27 @@ const props = defineProps({
 
 // rotationIndex tracks the "virtual" position for infinite spinning
 const rotationIndex = ref(0)
-const hoverIndex = ref(null)
+const hoveredZone = ref(null) // null, -1 (prev), 0 (current), 1 (next)
 const isPaused = ref(false)
+const isWindowFocused = ref(true)
 const isModalOpen = ref(false)
 const isGlobalModalOpen = useState('isModalActive', () => false)
 watch(isModalOpen, (val) => { isGlobalModalOpen.value = val })
 
 const selectedProject = ref(null)
+const carouselRef = ref(null)
+const isVisible = ref(false)
 
 const currentIndex = computed(() => {
   const len = props.items.length
   return ((rotationIndex.value % len) + len) % len
+})
+
+const activeHoverIndex = computed(() => {
+  if (hoveredZone.value === null) return null
+  const len = props.items.length
+  const targetRotation = rotationIndex.value + hoveredZone.value
+  return ((targetRotation % len) + len) % len
 })
 
 const goToRotation = (offset) => {
@@ -45,15 +55,18 @@ let autoRotateInterval = null
 const startAutoRotate = () => {
   stopAutoRotate()
   autoRotateInterval = setInterval(() => {
-    if (!isPaused.value && !isModalOpen.value) {
+    if (!isPaused.value && !isModalOpen.value && isWindowFocused.value && isVisible.value) {
       nextRotation()
     }
-  }, 3500)
+  }, 6000)
 }
 
 const stopAutoRotate = () => {
   if (autoRotateInterval) clearInterval(autoRotateInterval)
 }
+
+const handleFocus = () => { isWindowFocused.value = true }
+const handleBlur = () => { isWindowFocused.value = false }
 
 // Close modal on scroll
 const handleGlobalScroll = (e) => {
@@ -72,12 +85,25 @@ onMounted(() => {
   startAutoRotate()
   window.addEventListener('wheel', handleGlobalScroll, { capture: true, passive: false })
   window.addEventListener('touchmove', handleGlobalScroll, { capture: true, passive: false })
+  window.addEventListener('focus', handleFocus)
+  window.addEventListener('blur', handleBlur)
+
+  // Visibility detection
+  const observer = new IntersectionObserver((entries) => {
+    isVisible.value = entries[0].isIntersecting
+  }, { threshold: 0.3 })
+
+  if (carouselRef.value) {
+    observer.observe(carouselRef.value)
+  }
 })
 
 onUnmounted(() => {
   stopAutoRotate()
   window.removeEventListener('wheel', handleGlobalScroll, { capture: true })
   window.removeEventListener('touchmove', handleGlobalScroll, { capture: true })
+  window.removeEventListener('focus', handleFocus)
+  window.removeEventListener('blur', handleBlur)
 })
 
 // 3D Math for Bent Cylinder
@@ -107,16 +133,16 @@ const getItemStyle = (index) => {
     scaleY = 1 + (t * 0.25)
   }
 
-  const blurAmount = Math.min(absRelAngle / 10, 5)
   const brightness = Math.max(1.1 - absRelAngle / 100, 0.2)
   const opacity = Math.max(1.1 - absRelAngle / 120, 0.3)
 
   return {
     transform: `rotateY(${itemAngle}deg) translateZ(${radius.value}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scaleX}, ${scaleY})`,
-    filter: absRelAngle > 1 ? `blur(${blurAmount}px) brightness(${brightness})` : 'none',
+    filter: absRelAngle > 1 ? `brightness(${brightness})` : 'none',
     opacity: opacity,
     zIndex: Math.round(1000 - absRelAngle),
-    transition: 'transform 2s cubic-bezier(0.4, 0, 0.2, 1), filter 1.2s ease, opacity 1.2s ease'
+    transition: 'transform 0.8s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.4s ease',
+    willChange: 'transform, opacity'
   }
 }
 
@@ -168,6 +194,7 @@ const getHoverIndex = (offset) => {
 <template>
   <section
     :id="id"
+    ref="carouselRef"
     class="projects section"
     @mouseenter="isPaused = true"
     @mouseleave="isPaused = false"
@@ -175,115 +202,107 @@ const getHoverIndex = (offset) => {
     <Transition name="fade-fast">
       <div
         v-if="!isModalOpen"
-        class="section__header absolute top-[4rem] inset-x-0 flex flex-col items-center justify-center z-10 pointer-events-none"
+        class="section__header absolute top-[2rem] inset-x-0 flex flex-col items-center justify-center z-10 pointer-events-none"
       >
-        <p class="section__label">
-          {{ label }}
-        </p>
+        <div class="cyber-box px-8 py-3">
+          <p class="section__label !mb-0 font-black">
+            {{ label }}
+          </p>
+        </div>
       </div>
     </Transition>
 
     <div class="carousel-container relative w-full h-full flex items-center justify-center overflow-visible">
       <!-- 3D Carousel -->
-      <Transition name="fade">
-        <div
-          v-if="!isModalOpen"
-          class="carousel"
-          :aria-label="`${title} carousel`"
-        >
-          <div class="carousel__viewport">
-            <div class="sphere-glow" />
+      <div
+        class="carousel"
+        :aria-label="`${title} carousel`"
+      >
+        <div class="carousel__viewport">
+          <div class="sphere-glow" />
 
-            <!-- Navigation Overlays -->
-            <div class="carousel__nav-overlay">
-              <div
-                class="nav-zone nav-zone--side"
-                @click="prevRotation"
-                @mouseenter="hoverIndex = getHoverIndex(-1)"
-                @mouseleave="hoverIndex = null"
-              />
-              <div
-                class="nav-zone nav-zone--center"
-                @click="handleCardClick(currentIndex)"
-                @mouseenter="hoverIndex = currentIndex"
-                @mouseleave="hoverIndex = null"
-              />
-              <div
-                class="nav-zone nav-zone--side"
-                @click="nextRotation"
-                @mouseenter="hoverIndex = getHoverIndex(1)"
-                @mouseleave="hoverIndex = null"
-              />
-            </div>
+          <div class="carousel__counter">
+            <span
+              v-for="(_, i) in items"
+              :key="i"
+              class="counter-dot"
+              :class="{ active: i === currentIndex }"
+            />
+          </div>
 
-            <div class="carousel__counter">
-              <span
-                v-for="(_, i) in items"
-                :key="i"
-                class="counter-dot"
-                :class="{ active: i === currentIndex }"
-              />
-            </div>
-
-            <div
-              class="carousel__ring"
-              :style="ringStyle"
+          <div
+            class="carousel__ring"
+            :style="ringStyle"
+          >
+            <article
+              v-for="(item, index) in items"
+              :key="index"
+              class="carousel__item-3d"
+              :class="{ active: currentIndex === index, 'glow-target': activeHoverIndex === index }"
+              :style="getItemStyle(index)"
+              @click.stop="handleCardClick(index)"
             >
-              <article
-                v-for="(item, index) in items"
-                :key="index"
-                class="carousel__item-3d"
-                :class="{ active: currentIndex === index, 'glow-target': hoverIndex === index }"
-                :style="getItemStyle(index)"
-                @click.stop="handleCardClick(index)"
-              >
-                <!-- This container is now massive to prevent clipping -->
-                <div class="glow-boundary">
-                  <div class="bent-card cursor-pointer border-none">
-                    <div
-                      class="bent-card__shading"
-                      :style="getCardShading(index)"
-                    />
+              <!-- This container is now massive to prevent clipping -->
+              <div class="glow-boundary">
+                <div class="bent-card cursor-pointer border-none">
+                  <div
+                    class="bent-card__shading"
+                    :style="getCardShading(index)"
+                  />
 
-                    <div class="bent-card__inner p-4 sm:p-8">
+                  <div class="bent-card__inner p-4 sm:p-8">
+                    <div
+                      class="card__image-bent"
+                      :style="{ backgroundImage: item.bg && item.bg !== '#' ? `url(${item.bg})` : '' }"
+                    />
+                    <div class="bent-card__content w-full">
+                      <h3 class="text-clamp px-2">
+                        {{ item.title }}
+                      </h3>
                       <div
-                        class="card__image-bent"
-                        :style="{ backgroundImage: item.bg && item.bg !== '#' ? `url(${item.bg})` : '' }"
-                      />
-                      <div class="bent-card__content w-full">
-                        <h3 class="text-clamp px-2">
-                          {{ item.title }}
-                        </h3>
-                        <div
-                          v-if="currentIndex === index"
-                          class="view-indicator"
-                        >
-                          <span>TAP TO VIEW DETAILS</span>
-                        </div>
+                        v-if="currentIndex === index"
+                        class="view-indicator"
+                      >
+                        <span>TAP TO VIEW DETAILS</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </article>
-            </div>
+              </div>
+            </article>
           </div>
         </div>
-      </Transition>
 
-      <!-- Integrated Modal Content -->
-      <Transition name="fade-instant">
-        <div
-          v-if="isModalOpen"
-          class="absolute inset-x-0 -top-[calc(7rem-25px)] bottom-0 flex items-start justify-center z-50 overflow-visible"
-        >
-          <PortfolioProjectModal
-            v-model="isModalOpen"
-            :project="selectedProject"
-            :section-title="title"
-            @close="isModalOpen = false"
+        <!-- Navigation Overlays moved outside 3D viewport to ensure they stay on top -->
+        <div class="carousel__nav-overlay">
+          <div
+            class="nav-zone nav-zone--side"
+            @click.stop="prevRotation"
+            @mouseenter="hoveredZone = -1"
+            @mouseleave="hoveredZone = null"
+          />
+          <div
+            class="nav-zone nav-zone--center"
+            @click.stop="handleCardClick(currentIndex)"
+            @mouseenter="hoveredZone = 0"
+            @mouseleave="hoveredZone = null"
+          />
+          <div
+            class="nav-zone nav-zone--side"
+            @click.stop="nextRotation"
+            @mouseenter="hoveredZone = 1"
+            @mouseleave="hoveredZone = null"
           />
         </div>
-      </Transition>
+      </div>
+
+      <!-- Integrated Modal Content -->
+      <PortfolioProjectModal
+        v-model="isModalOpen"
+        :project="selectedProject"
+        :section-title="title"
+        @close="isModalOpen = false"
+      />
     </div>
   </section>
 </template>
@@ -353,7 +372,7 @@ const getHoverIndex = (offset) => {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 2s cubic-bezier(0.2, 1, 0.3, 1);
+  transition: transform 4s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
 .carousel__item-3d {
@@ -439,13 +458,13 @@ const getHoverIndex = (offset) => {
 }
 
 .glow-target .bent-card {
-  box-shadow: 0 0 40px rgba(116, 245, 255, 0.4), 0 0 100px rgba(110, 61, 255, 0.2);
-  border-color: rgba(116, 245, 255, 0.5);
+  box-shadow: 0 0 25px rgba(116, 245, 255, 0.25), 0 0 60px rgba(110, 61, 255, 0.1);
+  border-color: rgba(116, 245, 255, 0.35);
 }
 
 .active.glow-target .bent-card {
   border-color: var(--accent);
-  box-shadow: 0 0 60px rgba(116, 245, 255, 0.5), 0 0 140px rgba(110, 61, 255, 0.3);
+  box-shadow: 0 0 35px rgba(116, 245, 255, 0.35), 0 0 80px rgba(110, 61, 255, 0.15);
 }
 
 .bent-card__shading {

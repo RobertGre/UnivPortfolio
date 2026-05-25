@@ -1,8 +1,8 @@
 :root {
   color-scheme: dark;
-  --bg: #05070f;
-  --surface: rgba(10, 15, 30, 0.88);
-  --surface-strong: rgba(20, 28, 55, 0.95);
+  --bg: #000000;
+  --surface: rgba(0, 0, 0, 0.95);
+  --surface-strong: rgba(5, 5, 5, 0.98);
   --text: #e8f7ff;
   --muted: #8fa7c3;
   --accent: #74f5ff;
@@ -19,6 +19,7 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: #000000;
 }
 
 /* Custom Cybernetic Scrollbar (Circular Dot Style) */
@@ -27,11 +28,11 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent); /* Matches unselected hamburger */
+  background: var(--accent);
   border: 1px solid var(--accent-strong);
   border-radius: 10px;
   background-clip: padding-box;
@@ -42,7 +43,7 @@ html {
 
 ::-webkit-scrollbar-thumb:hover,
 ::-webkit-scrollbar-thumb:active {
-  background: var(--accent-strong); /* Matches selected/hovered hamburger */
+  background: var(--accent-strong);
   border-color: var(--accent);
   box-shadow: 0 0 20px rgba(110, 61, 255, 0.5);
 }
@@ -50,29 +51,19 @@ html {
 /* Firefox Support */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
+  scrollbar-color: var(--accent) #000000;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(20, 100, 255, 0.12), transparent 23%),
-              radial-gradient(circle at 80% 20%, rgba(132, 48, 255, 0.12), transparent 18%),
-              linear-gradient(180deg, #070a14 0%, #05070f 100%);
+  background: #000000 !important;
   color: var(--text);
   overflow-x: hidden;
 }
 
 body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 120px 120px;
-  pointer-events: none;
-  opacity: 0.16;
-  z-index: 0;
+  display: none;
 }
 
 .nav {
@@ -88,14 +79,29 @@ body::before {
 .nav__controls {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.nav__toggle-container {
+  display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.nav__label-text {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--accent);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .nav__toggle {
   width: 44px;
   height: 44px;
-  background: var(--accent); /* Blue/Cyan default */
+  background: var(--accent);
   border: 1px solid var(--accent-strong);
   border-radius: 8px;
   cursor: pointer;
@@ -104,17 +110,19 @@ body::before {
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px rgba(116, 245, 255, 0.3);
+  flex-shrink: 0;
 }
 
 .nav__toggle:hover {
   transform: scale(1.05);
-  background: var(--accent-strong); /* Purple on hover */
+  background: var(--accent-strong);
   border-color: var(--accent);
   box-shadow: 0 4px 20px rgba(110, 61, 255, 0.4);
 }
 
-.nav--open .nav__toggle {
-  background: var(--accent-strong); /* Purple when open */
+.nav--open .nav__toggle,
+.nav__toggle--open {
+  background: var(--accent-strong);
   border-color: var(--accent);
   box-shadow: 0 4px 15px rgba(110, 61, 255, 0.4);
 }
@@ -123,7 +131,7 @@ body::before {
   position: relative;
   width: 20px;
   height: 2px;
-  background: #05070f;
+  background: #000000;
   transition: all 0.3s ease;
 }
 
@@ -133,7 +141,7 @@ body::before {
   position: absolute;
   width: 20px;
   height: 2px;
-  background: #05070f;
+  background: #000000;
   left: 0;
   transition: all 0.3s ease;
 }
@@ -150,7 +158,6 @@ body::before {
   background: #fff;
 }
 
-/* Center line becomes transparent when menu is open */
 .nav--open .nav__toggle-icon,
 .nav--open .nav__toggle:hover .nav__toggle-icon {
   background: transparent !important;
@@ -170,9 +177,17 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem; /* Increased gap to match text height */
-  padding-top: 0.5rem;
+  gap: 1.5rem;
   z-index: 2;
+  width: 44px;
+}
+
+.nav__dot-wrapper {
+  height: 16px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav__progress-line {
@@ -206,13 +221,13 @@ body::before {
 .nav__menu {
   position: absolute;
   top: 0;
-  left: 20px; /* Position right next to the dots */
-  margin-left: 1rem;
+  left: 44px;
+  margin-left: 1.5rem;
   opacity: 0;
   visibility: hidden;
   transform: translateX(-10px);
   transition: all 0.3s ease;
-  pointer-events: none; /* Prevent clicks when hidden */
+  pointer-events: none;
 }
 
 .nav--open .nav__menu {
@@ -228,15 +243,24 @@ body::before {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Matches the gap of the progress dots */
-  padding-top: 0.2rem; /* Align first item with first dot */
+  gap: 1.5rem;
 }
 
 .nav__list li {
-  margin-bottom: 0; /* Remove old margin */
-  height: 16px; /* Match dot max height for perfect alignment */
+  margin-bottom: 0;
+  height: 16px;
   display: flex;
   align-items: center;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
 }
 
 .nav__link {
@@ -268,20 +292,20 @@ body::before {
 main {
   position: relative;
   z-index: 1;
-  top: -25px; /* Shift everything in main up */
 }
 
 .section {
   min-height: 100vh;
-  padding: 4rem 50px; /* Fixed 50px symmetric padding */
+  padding: 6rem 50px;
   display: grid;
   place-items: center;
   position: relative;
-  background: var(--bg);
+  background: transparent;
   z-index: 2;
   will-change: transform, opacity;
-  margin-bottom: 0;
+  margin-bottom: 40vh; /* Increased spacing to 40% of viewport height */
 }
+
 .section:last-child {
   margin-bottom: 0;
 }
@@ -290,6 +314,31 @@ main {
   .section {
     padding: 2rem 20px;
   }
+}
+
+.cyber-box {
+  position: relative;
+  background: rgba(12, 12, 15, 0.95);
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background-image: linear-gradient(rgba(12, 12, 15, 0.95), rgba(12, 12, 15, 0.95)), 
+                    linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.cyber-box::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(116, 245, 255, 0.3), transparent);
+  pointer-events: none;
+}
+
+#about {
+  position: relative;
+  top: -90px !important;
 }
 
 .section__header {
@@ -302,7 +351,7 @@ main {
   letter-spacing: 0.35em;
   text-transform: uppercase;
   font-size: 0.8rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
 }
 
 .section__title {
@@ -316,17 +365,9 @@ main {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0; /* Centered without asymmetric offsets */
+  padding: 0;
   background: transparent;
   z-index: 1;
-}
-
-.hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(116, 245, 255, 0.14), transparent 22%),
-              radial-gradient(circle at 75% 18%, rgba(136, 80, 255, 0.12), transparent 20%);
-  pointer-events: none;
 }
 
 .hero__content {
@@ -334,8 +375,25 @@ main {
   max-width: 920px;
   z-index: 2;
   padding: 4rem 2rem;
-  background: rgba(3, 8, 18, 0.8);
+  background: #0c0c0f;
   border-radius: 32px;
+  border: 1px solid transparent;
+  background-image: linear-gradient(#0c0c0f, #0c0c0f), 
+                    linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.hero__content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(116, 245, 255, 0.3), transparent);
+  pointer-events: none;
 }
 
 .hero__eyebrow {
@@ -348,13 +406,10 @@ main {
 }
 
 .hero h1 {
-  font-size: clamp(1.4rem, 2.2vw, 2.1rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
   letter-spacing: 0.05em;
-  margin: 2rem auto 0;
-  display: inline-block;
-  padding: 0.5rem 1.5rem;
-  border: 2px solid var(--accent-strong);
-  border-radius: 12px;
+  margin: 1rem auto 0;
+  display: block;
   color: var(--text);
   text-transform: uppercase;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -379,7 +434,7 @@ main {
 .carousel__viewport {
   position: relative;
   width: min(100%, 960px);
-  height: 720px; /* increased viewport height to make center card taller */
+  height: 720px;
   perspective: 1400px;
 }
 
@@ -412,25 +467,23 @@ main {
 }
 
 .carousel__item.active {
-  /* center card becomes a large showcase */
   width: 60%;
   min-width: 320px;
   max-width: 800px;
   transform: translate(-50%, -50%) translate3d(0, 0, 0px) rotateY(0deg) scale(1);
-  z-index: 12; /* center above side items so center remains clickable */
+  z-index: 12;
 }
 
 .carousel__item.prev,
 .carousel__item.next {
   transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease, box-shadow 0.3s ease;
-  z-index: 10; /* ensure side items receive clicks even if overlapping */
+  z-index: 10;
   width: 25%;
   min-width: 140px;
   max-width: 300px;
 }
 
 .carousel__item.prev {
-  /* use percentage of its own width so it scales with container */
   transform: translate(-50%, -50%) translate3d(-160%, 0, 0px) rotateY(-20deg);
   z-index: 10;
 }
@@ -478,7 +531,6 @@ main {
   .carousel__item.active {
     width: 240px;
   }
-  /* Mobile side lines logic */
   .carousel__item.prev,
   .carousel__item.next {
     width: 30px !important;
@@ -514,15 +566,14 @@ main {
   display: grid;
   gap: 1rem;
   padding: 1.5rem;
-  background: rgba(8, 12, 24, 0.95);
-  border: 1px solid rgba(116, 245, 255, 0.18);
+  background: #0c0c0f;
+  border: 1px solid var(--border);
   border-radius: 28px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-  min-height: 660px; /* center card height increased */
-  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  min-height: 660px;
+  will-change: transform;
 }
 
-/* side cards should be vertically smaller (~75% of center) */
 .carousel__item.prev .carousel__card,
 .carousel__item.next .carousel__card {
   min-height: calc(660px * 0.75);
@@ -547,10 +598,9 @@ main {
   border: 1px solid rgba(116, 245, 255, 0.12);
   display: block;
   overflow: hidden;
-  color: transparent; /* hide placeholder text */
+  color: transparent;
 }
 
-/* side card images ~75% of center height */
 .carousel__item.prev .card__image,
 .carousel__item.next .card__image {
   height: calc(360px * 0.75);
@@ -565,7 +615,7 @@ main {
   border-radius: 999px;
   border: 1px solid rgba(116, 245, 255, 0.3);
   color: var(--text);
-  background: rgba(7, 12, 21, 0.85);
+  background: rgba(0, 0, 0, 0.85);
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
@@ -586,88 +636,6 @@ main {
   display: none;
 }
 
-.carousel__card {
-  display: grid;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: rgba(8, 12, 24, 0.95);
-  border: 1px solid rgba(116, 245, 255, 0.18);
-  border-radius: 28px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-  min-height: 250px;
-  backdrop-filter: blur(14px);
-}
-
-.carousel__item:not(.active) .carousel__card {
-  filter: blur(0.1px) brightness(0.9);
-}
-
-.card__image {
-  min-height: 140px;
-  border-radius: 18px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(180deg, rgba(116, 245, 255, 0.12), rgba(14, 25, 45, 0.6));
-  border: 1px solid rgba(116, 245, 255, 0.12);
-  color: var(--accent);
-  font-weight: 700;
-  overflow: hidden;
-  background-size: cover;
-  background-position: center;
-}
-
-
-
-.card__link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.9rem 1.2rem;
-  border-radius: 999px;
-  border: 1px solid rgba(116, 245, 255, 0.3);
-  color: var(--text);
-  background: rgba(7, 12, 21, 0.85);
-  text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
-}
-
-.carousel__item:not(.active) .card__link {
-  pointer-events: none;
-  opacity: 0.3;
-}
-
-.card__link:hover,
-.carousel__item.active .card__link:hover {
-  color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(116, 245, 255, 0.2);
-}
-
-.carousel__controls {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.carousel__button {
-  min-width: 160px;
-  border: 1px solid rgba(116, 245, 255, 0.22);
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.45);
-  padding: 1rem 1.25rem;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.carousel__button:hover {
-  transform: translateY(-2px);
-  background: rgba(10, 20, 40, 0.9);
-  box-shadow: 0 0 24px rgba(116, 245, 255, 0.14);
-}
-
 .about__grid {
   display: grid;
   gap: 1.75rem;
@@ -675,10 +643,53 @@ main {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+@media (max-width: 860px) {
+  .about__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .about__card {
   padding: 2rem;
-  background: rgba(7, 12, 24, 0.95);
+  background: #0c0c0f;
   border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+}
+
+/* Single/Full box: Cyan to Purple Gradient */
+.about__card--full {
+  grid-column: span 2;
+  background-image: linear-gradient(#0c0c0f, #0c0c0f), 
+                    linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.about__card--full::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(116, 245, 255, 0.3), transparent);
+}
+
+/* Two-box layout: Left card (Cyan) */
+.about__card:nth-child(2) {
+  border-color: rgba(116, 245, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(116, 245, 255, 0.2);
+}
+
+/* Two-box layout: Right card (Purple) */
+.about__card:nth-child(3) {
+  border-color: rgba(110, 61, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(110, 61, 255, 0.2);
+}
+
+@media (max-width: 860px) {
+  .about__card--full {
+    grid-column: span 1;
+  }
 }
 
 .about__card--accent {

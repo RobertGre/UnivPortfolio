@@ -30,23 +30,33 @@ const navigate = (index) => {
     :class="{ 'nav--open': isOpen }"
   >
     <div class="nav__controls">
-      <button
-        class="nav__toggle"
-        aria-label="Toggle navigation"
-        @click="toggleNav"
-      >
-        <span class="nav__toggle-icon" />
-      </button>
+      <div class="nav__toggle-container">
+        <button
+          class="nav__toggle"
+          :class="{ 'nav__toggle--open': isOpen }"
+          aria-label="Toggle navigation"
+          @click="toggleNav"
+        >
+          <span class="nav__toggle-icon" />
+        </button>
+        <Transition name="fade-slide">
+          <span v-if="isOpen" class="nav__label-text">MENU</span>
+        </Transition>
+      </div>
       <div class="nav__progress-container">
         <div class="nav__progress">
           <div class="nav__progress-line" />
           <div
             v-for="(section, index) in sections"
             :key="section.id"
-            class="nav__progress-dot"
-            :class="{ active: currentIndex === index }"
-            @click="navigate(index)"
-          />
+            class="nav__dot-wrapper"
+          >
+            <div
+              class="nav__progress-dot"
+              :class="{ active: currentIndex === index }"
+              @click="navigate(index)"
+            />
+          </div>
         </div>
         <div class="nav__menu">
           <ul class="nav__list">

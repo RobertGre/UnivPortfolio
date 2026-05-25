@@ -2,6 +2,7 @@
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
+import shaderBg from '~/assets/shaderprogrammingbg.jpg'
 
 const sections = [
   { id: 'home', label: 'HOME' },
@@ -34,39 +35,30 @@ const games = [
     youtube: 'dQw4w9WgXcQ'
   },
   {
-    title: 'VR Space Adventure',
+    title: 'Extended Realities',
     link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/space/800/600',
-    description: 'Explore the galaxy in this high-fidelity VR flight simulator.',
-    learned: 'Advanced linear algebra for 6DOF movement and performance optimization for VR.',
-    done: 'Architected the spacecraft flight model and cockpit UI.',
+    bg: 'https://picsum.photos/seed/xr/800/600',
+    description: 'Project details coming soon.',
+    learned: 'TBD',
+    done: 'TBD',
     youtube: 'dQw4w9WgXcQ'
   },
   {
-    title: 'Cyberpunk Racer',
+    title: 'E.R.O.',
     link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/race/800/600',
-    description: 'High-speed racing through a neon-drenched futuristic city.',
-    learned: 'Implementing pathfinding for AI racers and dynamic weather systems.',
-    done: 'Developed the vehicle physics and the procedural traffic system.',
+    bg: 'https://picsum.photos/seed/fyp/800/600',
+    description: 'Project details coming soon.',
+    learned: 'TBD',
+    done: 'TBD',
     youtube: 'dQw4w9WgXcQ'
   },
   {
-    title: 'Neon Guardian',
+    title: 'Games and Interactive Systems',
     link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/neon/800/600',
-    description: 'A fast-paced bullet hell game with vibrant neon aesthetics.',
-    learned: 'Particle system optimization and bullet pooling patterns.',
-    done: 'Created the enemy behavior patterns and custom VFX.',
-    youtube: 'dQw4w9WgXcQ'
-  },
-  {
-    title: 'Deep Sea Hunter',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/sea/800/600',
-    description: 'Survival horror set in the darkest depths of the ocean.',
-    learned: 'Volumetric lighting and underwater acoustics simulation.',
-    done: 'Implemented the submarine control system and environmental hazards.',
+    bg: 'https://picsum.photos/seed/gis/800/600',
+    description: 'Project details coming soon.',
+    learned: 'TBD',
+    done: 'TBD',
     youtube: 'dQw4w9WgXcQ'
   }
 ]
@@ -82,22 +74,24 @@ const techProjects = [
     youtube: 'dQw4w9WgXcQ'
   },
   {
-    title: 'Simulation Software',
+    title: 'ADAPTIVE CROWD SIMULATION',
     link: 'https://github.com',
     bg: 'https://picsum.photos/seed/sim/800/600',
-    description: 'Real-time fluid dynamics simulation for scientific visualization.',
-    learned: 'Parallel computing with compute shaders and grid-based solvers.',
-    done: 'Implemented the Navier-Stokes solver using WebGL.',
+    description: 'A 3D, AI-powered crowd simulation developed in Unity to optimize emergency evacuation planning by modeling dynamic fire hazards and realistic human psychological friction.',
+    learned: 'Unity 3D, C#, Agent-Based Modeling, Finite State Machines (FSM), Custom Pathfinding, Explainable AI (XAI) Logging.',
+    done: 'Engineered autonomous agents with decentralized perception, cognitive delays, and peer-to-peer hazard communication to benchmark adaptive survival rates against static routing.',
+    summary: 'Traditional airport evacuation models often rely on deterministic, static routing that fails to account for dynamic hazards and panic-induced human friction. This project is a 3D functional prototype designed to proactively stress-test terminal layouts during fire emergencies. Rather than treating crowds as a homogenous swarm with flawless global map knowledge, the system uses perception-driven AI. Agents were programmed with realistic psychological constraints, including restricted visual angles, cognitive reaction delays, and the ability to trigger "Information Cascades" via peer-to-peer data transmission. By running computational evaluations under extreme environmental stress, the simulation benchmarked a traditional "Global Knowledge" model against this custom Adaptive AI. While the static model suffered severe evacuation delays and fatalities by routing agents blindly through active hazards, the Adaptive AI successfully simulated human "herd behavior." Agents yielded to congestion, rerouted dynamically based on localized visual perception, and achieved a flawless 100% survival rate by bypassing fatal bottlenecks. Complete with an Explainable AI (XAI) data-logging architecture, this prototype serves as a predictive diagnostic tool to help architectural planners optimize life-saving crisis response.',
     youtube: 'dQw4w9WgXcQ'
   },
   {
-    title: 'Custom Shader Programming',
+    title: 'SHADER PROGRAMMING',
     link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/shader/800/600',
-    description: 'A library of high-performance HLSL shaders for AAA rendering.',
-    learned: 'PBR workflows, ray-marching, and custom lighting models.',
-    done: 'Wrote the interior mapping and atmospheric scattering shaders.',
-    youtube: 'dQw4w9WgXcQ'
+    bg: shaderBg,
+    description: 'A real-time cinematic scene driven by advanced GPU pixel math and custom HLSL. Designed to create an oppressive environment, this project treats ancient magic as a reactive, hostile presence. By offloading complex volumetric and fluid calculations entirely to the GPU, the scene achieves high visual density without the performance costs of standard physics or heavy overdraw, running at a flawless 60–105 FPS on Cinematic scalabilities.',
+    learned: 'Unreal Engine 5, Custom HLSL, Procedural Raytracing, Niagara Systems, Performance Optimization, Post-Process Materials.',
+    done: 'Engineered a suite of custom mathematical shaders including a parallax ray-traced demon eye, procedural fire, and volume-less fluid simulation bypassing traditional rendering pipelines to maximize GPU performance.',
+    summary: 'Core Technical Implementations:\n\nProcedural Raytraced Eye: A textureless, parallax "Demon Eye" built using HLSL ray-sphere intersection. It calculates its own dynamic specular highlights and dilates its pupil based on camera proximity.\n\nGPU-Driven Liquid Volume: A fluid simulation that bypasses CPU physics. It mathematically calculates complex surface tension using absolute world position, procedural sphere masks, and multi-directional panning normals.\n\nProcedural Fire & Volumetrics: Fire effects generated through mathematical erosion, smooth-stepping, and Fractional Brownian Motion (FBM) on a single masked geometry, completely eliminating traditional particle overdraw.\n\nReactive Post-Processing: A dynamic screen vignette that communicates with the 3D environment via Material Parameter Collections (MPCs), physically constricting the player\'s vision as they approach the focal point.',
+    youtube: 'BtiMmb95DH4'
   },
   {
     title: 'Real-time Raytracing',
@@ -125,6 +119,33 @@ const techProjects = [
     learned: 'Serverless architecture and database sharding.',
     done: 'Provisioned the infrastructure using Terraform and wrote Lambda functions.',
     youtube: 'dQw4w9WgXcQ'
+  },
+  {
+    title: 'Artificial Intelligence for Games',
+    link: 'https://github.com',
+    bg: 'https://picsum.photos/seed/aigames/800/600',
+    description: 'Project details coming soon.',
+    learned: 'TBD',
+    done: 'TBD',
+    youtube: 'dQw4w9WgXcQ'
+  },
+  {
+    title: 'PETER DEFEATER',
+    link: 'https://github.com',
+    bg: 'https://picsum.photos/seed/oop/800/600',
+    description: 'Project details coming soon.',
+    learned: 'TBD',
+    done: 'TBD',
+    youtube: 'dQw4w9WgXcQ'
+  },
+  {
+    title: 'HEATMAP',
+    link: 'https://github.com',
+    bg: 'https://picsum.photos/seed/gt/800/600',
+    description: 'An Unreal Engine plugin designed to generate visual heatmaps, tracking and analyzing player movement to identify the most accessed areas of a map.',
+    learned: 'Unreal Engine Plugin Architecture, C++, Data Visualization, Spatial Analysis.',
+    done: 'Developed a custom tool for level designers to optimize player flow based on empirical movement data.',
+    youtube: 'dQw4w9WgXcQ'
   }
 ]
 
@@ -136,9 +157,14 @@ const scrollToSection = (index) => {
 
   const target = document.getElementById(sections[index].id)
   if (target) {
+    // Calculate the position to center the section in the viewport
+    const viewportHeight = window.innerHeight
+    const targetHeight = target.offsetHeight
+    const scrollToY = target.offsetTop - (viewportHeight - targetHeight) / 2
+
     gsap.to(window, {
-      duration: 0.2,
-      scrollTo: { y: target.offsetTop, autoKill: false },
+      duration: 0.6, // Slightly longer duration for smoother snap
+      scrollTo: { y: scrollToY, autoKill: false },
       ease: 'power4.out',
       overwrite: true,
       onComplete: () => {
@@ -261,7 +287,7 @@ onUnmounted(() => {
 
     <PortfolioCarousel
       id="games"
-      label="GAMES"
+      label="GAME PROJECTS"
       title="Games Showcase"
       :items="games"
     />
@@ -279,7 +305,7 @@ onUnmounted(() => {
 
 <style scoped>
 .portfolio-main {
-  height: 100vh;
+  min-height: 100vh;
   overflow: visible;
 }
 </style>
