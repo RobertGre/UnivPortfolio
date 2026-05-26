@@ -19,7 +19,6 @@ const toggleNav = () => {
 }
 
 const navigate = (index) => {
-  isOpen.value = false
   emit('navigate', index)
 }
 </script>

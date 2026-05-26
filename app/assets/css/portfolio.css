@@ -22,36 +22,15 @@ html {
   background-color: #000000;
 }
 
-/* Custom Cybernetic Scrollbar (Circular Dot Style) */
+/* Hide Scrollbar Globally while allowing scrolling */
 ::-webkit-scrollbar {
-  width: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: #000000;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border: 1px solid var(--accent-strong);
-  border-radius: 10px;
-  background-clip: padding-box;
-  border-left: 3px solid transparent;
-  border-right: 3px solid transparent;
-  box-shadow: 0 0 10px rgba(116, 245, 255, 0.2);
-}
-
-::-webkit-scrollbar-thumb:hover,
-::-webkit-scrollbar-thumb:active {
-  background: var(--accent-strong);
-  border-color: var(--accent);
-  box-shadow: 0 0 20px rgba(110, 61, 255, 0.5);
+  display: none;
 }
 
 /* Firefox Support */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) #000000;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 body {

@@ -3,6 +3,13 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import shaderBg from '~/assets/shaderprogrammingbg.jpg'
+import fyipCard from '~/assets/fyipimage.jpg'
+import eroCard from '~/assets/EROcardimage.png'
+import eotttCard from '~/assets/EOTTTimage.png'
+import echoCard from '~/assets/Echoimage.jpg'
+import peterCard from '~/assets/PeterDefeater.png'
+import minigamesCard from '~/assets/year1minigamesimage.jpg'
+import jamsCard from '~/assets/gamejamsimage.jpg'
 
 const sections = [
   { id: 'home', label: 'HOME' },
@@ -18,134 +25,113 @@ const isGlobalModalOpen = useState('isModalActive', () => false)
 const games = [
   {
     title: 'Echo: Bound by Choice',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/echo/800/600',
-    description: 'An immersive puzzle game that explores the consequences of choices. Built with Unity and C#.',
-    learned: 'Deepened my understanding of complex state management and player psychology in game design.',
-    done: 'Lead developer for the interaction system and environment shaders.',
-    youtube: 'dQw4w9WgXcQ' // Example ID
+    year: '2025',
+    isTech: true,
+    bg: echoCard,
+    description: 'Atmospheric puzzle game (UE). Features interactive CCTV mechanics, tactile object inspection, and responsive level design. Players solve environmental puzzles through critical thinking and exploration in a suspenseful setting.',
+    learned: 'Mastered player-centric design through iterative playtesting. Learned to identify and fix UX friction points—like awkward interaction angles—to ensure mechanics are as intuitive as the puzzles are clever.',
+    done: 'Iterative Design & Polish:\n- Analyzed playtests to overhaul UI/UX and interaction ranges.\n- Replaced text prompts with intuitive 3D rotation icons.\n- Restructured collision systems to fix physical clipping in wardrobe mechanics.\n- Expanded scope with additional puzzles and a satisfying alternate ending.',
+    summary: 'Engineered core gameplay systems including a functional CCTV mechanic for spatial observation, complex physics-based object interactions for clue discovery, and balanced environmental puzzle logic designed to challenge critical thinking without sacrificing player flow.',
+    youtube: 'o1Nd_0fGwSg'
   },
   {
     title: 'Echoes Of The Twin Tombs',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/tombs/800/600',
-    description: 'A VR co-op adventure set in ancient Egyptian tombs. Developed using Unreal Engine 5.',
-    learned: 'Mastered VR networking and collaborative puzzle mechanics in a physics-based world.',
-    done: 'Implemented the VR locomotion system and synchronized network events.',
-    youtube: 'dQw4w9WgXcQ'
-  },
-  {
-    title: 'Extended Realities',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/xr/800/600',
-    description: 'Project details coming soon.',
-    learned: 'TBD',
-    done: 'TBD',
-    youtube: 'dQw4w9WgXcQ'
+    year: '2025',
+    isTech: true,
+    bg: eotttCard,
+    bgSize: 'cover',
+    bgPos: '100% center',
+    description: 'Asymmetrical VR co-op escape room (Unity, Normcore, XRIT). Two players—the Engineer and the Navigator—collaborate across physical spaces using forced asymmetric knowledge to solve ancient puzzles through continuous verbal communication.',
+    learned: 'Balanced network engineering with immersive design. Gained expertise in motion sickness mitigation, optimized physics calculations, and conceptualizing aesthetics that leverage VR\'s unique strengths.',
+    done: 'Art Direction & Pre-Production:\n- Directed the Egyptian Tomb aesthetic for immersion and comfort.\n- Mapped complex networked puzzle states via Excalidraw and Mermaid.\n- Aligned teams to prevent scope creep and ensure thematic cohesion.',
+    summary: 'Developed advanced XR systems featuring recursive raycasting for networked laser puzzles, zero-latency tactile interactions utilizing XRIT and Normcore interpolation, and immersive multi-sensory feedback loops that synchronize spatial audio with dynamic visual cues.',
+    youtube: 'yrYdrjQj2Is'
   },
   {
     title: 'E.R.O.',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/fyp/800/600',
-    description: 'Project details coming soon.',
-    learned: 'TBD',
-    done: 'TBD',
-    youtube: 'dQw4w9WgXcQ'
+    year: '2025',
+    fullTitle: 'Experimental Reconstruction Organism',
+    itch: 'https://altf5studios.itch.io/ero',
+    bg: eroCard,
+    description: 'Gameplay & Blueprint Replication Programmer (UE5). A co-op sandbox survival game where players awaken as cyborgs on a fractured island. Features resource gathering, crafting, and base-building in a stylized low-poly world.',
+    learned: 'Mastered UE5\'s Blueprint replication. Learned to separate server authority from client-side logic, translating complex networking concepts into robust, synchronized multiplayer gameplay.',
+    done: 'Gameplay & Systems Programming:\n- Developed core crafting, tree-chopping, and base-building with ghost previews.\n- Engineered logic for interactable items and gameplay props in a shared environment.\n- Collaborated on resource consumption and authorized server-client actions.',
+    summary: 'Spearheaded Blueprint replication architecture by implementing robust server-client communication via RPCs and variable replication, while maintaining detailed technical documentation to synchronize complex environmental mechanics like dynamic day/night cycles across a shared world.',
+    youtube: 'APRTWH3-Zko'
   },
   {
-    title: 'Games and Interactive Systems',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/gis/800/600',
-    description: 'Project details coming soon.',
-    learned: 'TBD',
-    done: 'TBD',
-    youtube: 'dQw4w9WgXcQ'
+    title: 'Minigames',
+    year: '2024',
+    hideLinks: true,
+    isMinigame: true,
+    bg: minigamesCard,
+    description: 'A collection of formative university projects including "Extraterrestrial Escape" (3D Survival/Stealth) and "!super!mario" (2D Platformer). These projects represent my transition from solo learning to collaborative group environments.',
+    learned: 'Solidified skills in rapid prototyping, 3D physics, and managing scope within team environments. Laid the groundwork for 2D physics, collision detection, and formal game loops.',
+    done: 'Key Contributions:\n- Programmed physics-based FPC utilizing Unity\'s New Input System.\n- Developed 2D platformer mechanics including coin/key collection.',
+    youtube: 'id97n-Y8GKk'
+  },
+  {
+    title: 'Game Jams',
+    year: '2024-2026',
+    hideLinks: true,
+    isGameJam: true,
+    bg: jamsCard,
+    description: 'Cornerstone of my growth as a developer. These 48-hour sprints test project management, risk assessment, and technical versatility. Evolved from a novice into a technical facilitator bridging code, art, and audio.',
+    learned: 'Taught the value of "technical glue" roles, the absolute necessity of strict Git version control, and timeboxing tasks under extreme pressure. Cemented industry standards for rapid iteration and hardware preparedness.',
+    done: 'The Monster Rush:\n- UI Programmer & Audio Integrator. Subverted the "Moderation" theme with rule-breaking comedic loops.\n\nSplash N\' Dash:\n- Technical Developer & 3D Artist. Physics-based QWOP-style kayaking prototype under extreme logistical hurdles.\n\nColosseum Ascendant:\n- Support Programmer. Swords and Sandals-inspired RPG withStat allocation and knowledge checks.',
+    youtube: '3mIomRHWbt8'
+  },
+  {
+    title: 'Peter Defeater',
+    year: '2025',
+    isTech: true,
+    bg: peterCard,
+    description: '2D top-down shooter (Unity/C#) built as an academic showcase for strict OOP methodologies. Features modular weapon systems, hierarchical AI, and clean data encapsulation for code reusability.',
+    learned: 'Deep dive into advanced software architecture. Learned to separate core logic from standard MonoBehaviours, building robust hierarchies where new content can be added with minimal friction.',
+    done: 'Core Technical Contributions:\n- Designed polymorphic weapon architecture using custom base classes.\n- Architected modular enemy framework with hierarchical AI behaviors.\n- Implemented Enum-based state machines and Physics2D raycast detection.\n- Enforced strict encapsulation and clean code principles throughout.',
+    summary: 'Developed a scalable OOP-driven architecture in Unity, featuring a polymorphic weapon system, hierarchical AI frameworks for diverse enemy behaviors, and dynamic loot systems, all built on strict encapsulation principles for high code reusability and long-term maintainability.',
+    youtube: '6YwtFNX7aBQ'
   }
 ]
 
 const techProjects = [
   {
-    title: 'AI Modeling',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/ai/800/600',
-    description: 'Custom neural network implementation for predictive game AI.',
-    learned: 'Machine learning fundamentals and data-driven decision making.',
-    done: 'Developed the training pipeline and integrated the model into Unity.',
-    youtube: 'dQw4w9WgXcQ'
-  },
-  {
-    title: 'ADAPTIVE CROWD SIMULATION',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/sim/800/600',
+    title: 'FIRE SAFETY SIMULATION',
+    isTech: true,
+    bg: fyipCard,
     description: 'A 3D, AI-powered crowd simulation developed in Unity to optimize emergency evacuation planning by modeling dynamic fire hazards and realistic human psychological friction.',
     learned: 'Unity 3D, C#, Agent-Based Modeling, Finite State Machines (FSM), Custom Pathfinding, Explainable AI (XAI) Logging.',
     done: 'Engineered autonomous agents with decentralized perception, cognitive delays, and peer-to-peer hazard communication to benchmark adaptive survival rates against static routing.',
-    summary: 'Traditional airport evacuation models often rely on deterministic, static routing that fails to account for dynamic hazards and panic-induced human friction. This project is a 3D functional prototype designed to proactively stress-test terminal layouts during fire emergencies. Rather than treating crowds as a homogenous swarm with flawless global map knowledge, the system uses perception-driven AI. Agents were programmed with realistic psychological constraints, including restricted visual angles, cognitive reaction delays, and the ability to trigger "Information Cascades" via peer-to-peer data transmission. By running computational evaluations under extreme environmental stress, the simulation benchmarked a traditional "Global Knowledge" model against this custom Adaptive AI. While the static model suffered severe evacuation delays and fatalities by routing agents blindly through active hazards, the Adaptive AI successfully simulated human "herd behavior." Agents yielded to congestion, rerouted dynamically based on localized visual perception, and achieved a flawless 100% survival rate by bypassing fatal bottlenecks. Complete with an Explainable AI (XAI) data-logging architecture, this prototype serves as a predictive diagnostic tool to help architectural planners optimize life-saving crisis response.',
-    youtube: 'dQw4w9WgXcQ'
+    summary: 'Traditional evacuation models often use static routing that ignores human panic. This 3D prototype stress-tests terminal layouts using perception-driven AI. Agents feature realistic constraints like restricted vision and cognitive delays, triggering peer-to-peer "Information Cascades". The simulation benchmarked a traditional model against this Adaptive AI; while static routing led to fatal bottlenecks, the Adaptive AI achieved a 100% survival rate by rerouting dynamically. Includes an XAI logging architecture for predictive diagnostic planning.',
+    youtube: '2A2KRqsTGFw'
   },
   {
     title: 'SHADER PROGRAMMING',
-    link: 'https://github.com',
+    isTech: true,
     bg: shaderBg,
     description: 'A real-time cinematic scene driven by advanced GPU pixel math and custom HLSL. Designed to create an oppressive environment, this project treats ancient magic as a reactive, hostile presence. By offloading complex volumetric and fluid calculations entirely to the GPU, the scene achieves high visual density without the performance costs of standard physics or heavy overdraw, running at a flawless 60–105 FPS on Cinematic scalabilities.',
     learned: 'Unreal Engine 5, Custom HLSL, Procedural Raytracing, Niagara Systems, Performance Optimization, Post-Process Materials.',
     done: 'Engineered a suite of custom mathematical shaders including a parallax ray-traced demon eye, procedural fire, and volume-less fluid simulation bypassing traditional rendering pipelines to maximize GPU performance.',
-    summary: 'Core Technical Implementations:\n\nProcedural Raytraced Eye: A textureless, parallax "Demon Eye" built using HLSL ray-sphere intersection. It calculates its own dynamic specular highlights and dilates its pupil based on camera proximity.\n\nGPU-Driven Liquid Volume: A fluid simulation that bypasses CPU physics. It mathematically calculates complex surface tension using absolute world position, procedural sphere masks, and multi-directional panning normals.\n\nProcedural Fire & Volumetrics: Fire effects generated through mathematical erosion, smooth-stepping, and Fractional Brownian Motion (FBM) on a single masked geometry, completely eliminating traditional particle overdraw.\n\nReactive Post-Processing: A dynamic screen vignette that communicates with the 3D environment via Material Parameter Collections (MPCs), physically constricting the player\'s vision as they approach the focal point.',
+    summary: 'A technical showcase of advanced GPU optimization featuring custom HLSL shaders for procedural ray-traced parallax effects, CPU-less volumetric fluid simulations, and mathematically driven fire effects (FBM) that eliminate overdraw while maintaining high Cinematic performance.',
     youtube: 'BtiMmb95DH4'
   },
   {
-    title: 'Real-time Raytracing',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/ray/800/600',
-    description: 'DirectX Raytracing (DXR) sandbox for global illumination.',
-    learned: 'Acceleration structures (BVH) and denoiser implementation.',
-    done: 'Built the raytracing pipeline from scratch in C++.',
-    youtube: 'dQw4w9WgXcQ'
+    title: 'TBA',
+    year: '2026',
+    hideLinks: true,
+    bg: 'https://picsum.photos/seed/tba/800/600',
+    description: 'More technical projects and software engineering showcases coming soon.',
+    learned: 'In progress...',
+    done: 'Coming soon...'
   },
   {
-    title: 'Network Protocol Dev',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/net/800/600',
-    description: 'High-performance UDP-based protocol for low-latency gaming.',
-    learned: 'Reliable UDP, congestion control, and packet serialization.',
-    done: 'Designed the protocol header and the packet acknowledgement system.',
-    youtube: 'dQw4w9WgXcQ'
-  },
-  {
-    title: 'Cloud Infrastructure',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/cloud/800/600',
-    description: 'Scalable backend for multiplayer match-making using AWS.',
-    learned: 'Serverless architecture and database sharding.',
-    done: 'Provisioned the infrastructure using Terraform and wrote Lambda functions.',
-    youtube: 'dQw4w9WgXcQ'
-  },
-  {
-    title: 'Artificial Intelligence for Games',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/aigames/800/600',
-    description: 'Project details coming soon.',
-    learned: 'TBD',
-    done: 'TBD',
-    youtube: 'dQw4w9WgXcQ'
-  },
-  {
-    title: 'PETER DEFEATER',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/oop/800/600',
-    description: 'Project details coming soon.',
-    learned: 'TBD',
-    done: 'TBD',
-    youtube: 'dQw4w9WgXcQ'
-  },
-  {
-    title: 'HEATMAP',
-    link: 'https://github.com',
-    bg: 'https://picsum.photos/seed/gt/800/600',
-    description: 'An Unreal Engine plugin designed to generate visual heatmaps, tracking and analyzing player movement to identify the most accessed areas of a map.',
-    learned: 'Unreal Engine Plugin Architecture, C++, Data Visualization, Spatial Analysis.',
-    done: 'Developed a custom tool for level designers to optimize player flow based on empirical movement data.',
-    youtube: 'dQw4w9WgXcQ'
+    title: 'TBA',
+    year: '2026',
+    hideLinks: true,
+    bg: 'https://picsum.photos/seed/tba2/800/600',
+    description: 'In development: Next-generation software solutions and technical research.',
+    learned: 'Stay tuned...',
+    done: 'Details arriving soon...'
   }
 ]
 
@@ -182,7 +168,7 @@ const handleWheel = (e) => {
     e.preventDefault()
     return
   }
-  
+
   e.preventDefault()
   if (isAutoScrolling.value) return
   if (e.deltaY > 0) {

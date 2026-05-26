@@ -71,6 +71,11 @@ const handleBlur = () => { isWindowFocused.value = false }
 // Close modal on scroll
 const handleGlobalScroll = (e) => {
   if (isModalOpen.value) {
+    // If scrolling over the modal content, let it scroll normally
+    if (e.target && e.target.closest && e.target.closest('.project-modal')) {
+      return
+    }
+
     if (Math.abs(e.deltaY) > 5 || (e.touches && e.touches.length > 0)) {
       isModalOpen.value = false
       // Kill browser-level momentum and stop propagation to index.vue
@@ -110,7 +115,14 @@ onUnmounted(() => {
 const radius = computed(() => {
   const count = props.items.length
   const width = 340 
-  return Math.round((width / 2) / Math.tan(Math.PI / count)) + 300 
+  // Dynamic base radius calculation
+  const baseRadius = Math.round((width / 2) / Math.tan(Math.PI / count))
+  
+  // Adaptive offset: smaller sets (like 3 items) get a much smaller offset 
+  // to keep the "previous/next" cards visible and accessible.
+  const adaptiveOffset = count <= 3 ? 120 : 300
+  
+  return baseRadius + adaptiveOffset
 })
 
 const getItemStyle = (index) => {
@@ -124,20 +136,18 @@ const getItemStyle = (index) => {
   const angleCorrection = -relAngle * 0.35
   const skewY = relAngle * 0.05
 
-  // WIDE RECTANGLE SCALING
-  let scaleX = 1
-  let scaleY = 1
+  // WIDE RECTANGLE SCALING - Now uniform to prevent stretching
+  let scale = 1
   if (absRelAngle < angle) {
     const t = 1 - (absRelAngle / angle)
-    scaleX = 1 + (t * 0.65)
-    scaleY = 1 + (t * 0.25)
+    scale = 1 + (t * 0.45) // Uniform scale factor
   }
 
   const brightness = Math.max(1.1 - absRelAngle / 100, 0.2)
   const opacity = Math.max(1.1 - absRelAngle / 120, 0.3)
 
   return {
-    transform: `rotateY(${itemAngle}deg) translateZ(${radius.value}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scaleX}, ${scaleY})`,
+    transform: `rotateY(${itemAngle}deg) translateZ(${radius.value}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scale})`,
     filter: absRelAngle > 1 ? `brightness(${brightness})` : 'none',
     opacity: opacity,
     zIndex: Math.round(1000 - absRelAngle),
@@ -253,7 +263,11 @@ const getHoverIndex = (offset) => {
                   <div class="bent-card__inner p-4 sm:p-8">
                     <div
                       class="card__image-bent"
-                      :style="{ backgroundImage: item.bg && item.bg !== '#' ? `url(${item.bg})` : '' }"
+                      :style="{ 
+                        backgroundImage: item.bg && item.bg !== '#' ? `url(${item.bg})` : '',
+                        backgroundSize: item.bgSize || 'cover',
+                        backgroundPosition: item.bgPos || 'center'
+                      }"
                     />
                     <div class="bent-card__content w-full">
                       <h3 class="text-clamp px-2">
@@ -326,8 +340,8 @@ const getHoverIndex = (offset) => {
 
 .carousel__viewport {
   position: relative;
-  width: 700px; /* ENORMOUS VIEWPORT */
-  height: 700px;
+  width: 800px;
+  height: 600px; /* Reduced height to fit better in screen */
   transform-style: preserve-3d;
   margin: 0 auto;
   overflow: visible !important;
@@ -348,7 +362,7 @@ const getHoverIndex = (offset) => {
   top: 50%;
   transform: translate(-50%, -50%);
   width: 1200px;
-  height: 600px;
+  height: 800px;
   display: flex;
   z-index: 2000;
   pointer-events: none;
@@ -377,19 +391,16 @@ const getHoverIndex = (offset) => {
 
 .carousel__item-3d {
   position: absolute;
-  /* NEW: The item container is now huge, 
-     effectively moving the clipping border far away from the card center */
-  width: 800px; 
-  height: 800px;
+  width: 500px; 
+  height: 700px;
   left: 50%;
   top: 50%;
   transform-origin: center center;
   backface-visibility: hidden;
   pointer-events: auto;
   overflow: visible !important;
-  /* Centering card within this massive envelope */
-  margin-left: -400px;
-  margin-top: -400px;
+  margin-left: -250px;
+  margin-top: -350px;
 }
 
 .glow-boundary {
@@ -420,7 +431,7 @@ const getHoverIndex = (offset) => {
 /* Counter Dots */
 .carousel__counter {
   position: absolute;
-  bottom: 20px;
+  top: calc(50% + 380px); /* Nudged another 10px down */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -497,6 +508,7 @@ const getHoverIndex = (offset) => {
   inset: 0;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   opacity: 0.3;
   transition: opacity 0.5s ease, transform 1s ease;
 }
