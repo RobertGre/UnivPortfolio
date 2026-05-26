@@ -1,5 +1,19 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  future: {
+    compatibilityVersion: 4
+  },
+
+  ssr: false,
+
+  app: {
+    baseURL: '/UnivPortfolio/'
+  },
+
+  nitro: {
+    preset: 'github-pages'
+  },
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui'
