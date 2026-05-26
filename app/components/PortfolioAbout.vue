@@ -32,7 +32,10 @@
       <div class="about__card about__card--accent">
         <h3>Reach Out</h3>
         <p class="about__item flex items-center gap-2">
-          <UIcon name="i-lucide-mail" class="text-[var(--accent)]" />
+          <UIcon
+            name="i-lucide-mail"
+            class="text-[var(--accent)]"
+          />
           <a
             href="mailto:robert.crisan2106@gmail.com"
             class="nav__link"
@@ -40,7 +43,10 @@
           >robert.crisan2106@gmail.com</a>
         </p>
         <p class="about__item flex items-center gap-2">
-          <UIcon name="i-lucide-linkedin" class="text-[var(--accent)]" />
+          <UIcon
+            name="i-lucide-linkedin"
+            class="text-[var(--accent)]"
+          />
           <a
             href="https://www.linkedin.com/in/robertcatalincrisan/"
             target="_blank"
@@ -49,7 +55,10 @@
           >linkedin.com/in/robertcatalincrisan</a>
         </p>
         <p class="about__item flex items-center gap-2">
-          <UIcon name="i-lucide-github" class="text-[var(--accent)]" />
+          <UIcon
+            name="i-lucide-github"
+            class="text-[var(--accent)]"
+          />
           <a
             href="https://github.com/RobertGre"
             target="_blank"

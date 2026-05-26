@@ -20,12 +20,12 @@ onMounted(() => {
   const canvas = canvasRef.value
   if (!canvas) return
   const ctx = canvas.getContext('2d')
-  
+
   let width, height
   const dots = []
   const DOT_COUNT = 80 // Optimal count for real-time proximity search
   const MAX_DIST = 150 // Connection distance
-  
+
   const initDots = () => {
     dots.length = 0
     for (let i = 0; i < DOT_COUNT; i++) {
@@ -51,12 +51,12 @@ onMounted(() => {
 
   const draw = () => {
     ctx.clearRect(0, 0, width, height)
-    
+
     // Update dot positions
     for (const dot of dots) {
       dot.x += dot.vx
       dot.y += dot.vy
-      
+
       // Wrap around screen
       if (dot.x < 0) dot.x = width
       if (dot.x > width) dot.x = 0
@@ -76,7 +76,7 @@ onMounted(() => {
         const dx = dotA.x - dotB.x
         const dy = dotA.y - dotB.y
         const dist = Math.sqrt(dx * dx + dy * dy)
-        
+
         if (dist < MAX_DIST) {
           neighbors.push({ dot: dotB, dist })
         }
@@ -104,7 +104,7 @@ onMounted(() => {
       ctx.beginPath()
       ctx.arc(dot.x, dot.y, dot.size, 0, Math.PI * 2)
       ctx.fill()
-      
+
       // Subtle glow for larger stars
       if (dot.size > 1.2) {
         ctx.fillStyle = `rgba(255, 255, 255, ${dot.opacity * 0.2})`

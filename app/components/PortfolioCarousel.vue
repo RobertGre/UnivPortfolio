@@ -25,7 +25,9 @@ const isPaused = ref(false)
 const isWindowFocused = ref(true)
 const isModalOpen = ref(false)
 const isGlobalModalOpen = useState('isModalActive', () => false)
-watch(isModalOpen, (val) => { isGlobalModalOpen.value = val })
+watch(isModalOpen, (val) => {
+  isGlobalModalOpen.value = val
+})
 
 const selectedProject = ref(null)
 const carouselRef = ref(null)
@@ -62,11 +64,17 @@ const startAutoRotate = () => {
 }
 
 const stopAutoRotate = () => {
-  if (autoRotateInterval) clearInterval(autoRotateInterval)
+  if (autoRotateInterval) {
+    clearInterval(autoRotateInterval)
+  }
 }
 
-const handleFocus = () => { isWindowFocused.value = true }
-const handleBlur = () => { isWindowFocused.value = false }
+const handleFocus = () => {
+  isWindowFocused.value = true
+}
+const handleBlur = () => {
+  isWindowFocused.value = false
+}
 
 // Close modal on scroll
 const handleGlobalScroll = (e) => {
@@ -114,14 +122,14 @@ onUnmounted(() => {
 // 3D Math for Bent Cylinder
 const radius = computed(() => {
   const count = props.items.length
-  const width = 340 
+  const width = 340
   // Dynamic base radius calculation
   const baseRadius = Math.round((width / 2) / Math.tan(Math.PI / count))
-  
-  // Adaptive offset: smaller sets (like 3 items) get a much smaller offset 
+
+  // Adaptive offset: smaller sets (like 3 items) get a much smaller offset
   // to keep the "previous/next" cards visible and accessible.
   const adaptiveOffset = count <= 3 ? 120 : 300
-  
+
   return baseRadius + adaptiveOffset
 })
 
@@ -129,7 +137,7 @@ const getItemStyle = (index) => {
   const count = props.items.length
   const angle = 360 / count
   const itemAngle = angle * index
-  
+
   const relAngle = ((itemAngle - angle * rotationIndex.value + 180) % 360 + 360) % 360 - 180
   const absRelAngle = Math.abs(relAngle)
 
@@ -162,7 +170,7 @@ const getCardShading = (index) => {
   const angle = 360 / count
   const itemAngle = angle * index
   const relAngle = ((itemAngle - angle * rotationIndex.value + 180) % 360 + 360) % 360 - 180
-  
+
   const highlightPos = 50 + (relAngle * 1.2)
   const shadowSide = relAngle > 0 ? 'right' : 'left'
   const shadowIntensity = Math.min(Math.abs(relAngle) / 60, 0.6)
@@ -192,12 +200,6 @@ const handleCardClick = (index) => {
     if (diff < -len / 2) diff += len
     rotationIndex.value += diff
   }
-}
-
-const getHoverIndex = (offset) => {
-  const len = props.items.length
-  const targetRotation = rotationIndex.value + offset
-  return ((targetRotation % len) + len) % len
 }
 </script>
 
@@ -248,7 +250,7 @@ const getHoverIndex = (offset) => {
               v-for="(item, index) in items"
               :key="index"
               class="carousel__item-3d"
-              :class="{ active: currentIndex === index, 'glow-target': activeHoverIndex === index }"
+              :class="{ 'active': currentIndex === index, 'glow-target': activeHoverIndex === index }"
               :style="getItemStyle(index)"
               @click.stop="handleCardClick(index)"
             >
@@ -263,7 +265,7 @@ const getHoverIndex = (offset) => {
                   <div class="bent-card__inner p-4 sm:p-8">
                     <div
                       class="card__image-bent"
-                      :style="{ 
+                      :style="{
                         backgroundImage: item.bg && item.bg !== '#' ? `url(${item.bg})` : '',
                         backgroundSize: item.bgSize || 'cover',
                         backgroundPosition: item.bgPos || 'center'
@@ -391,7 +393,7 @@ const getHoverIndex = (offset) => {
 
 .carousel__item-3d {
   position: absolute;
-  width: 500px; 
+  width: 500px;
   height: 700px;
   left: 50%;
   top: 50%;
@@ -460,7 +462,7 @@ const getHoverIndex = (offset) => {
   background: transparent;
   border-radius: 32px;
   transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
-  overflow: visible !important; 
+  overflow: visible !important;
   box-shadow: 0 25px 60px rgba(0,0,0,0.5);
   border: 2px solid transparent;
   outline: none !important;

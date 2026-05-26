@@ -39,7 +39,10 @@ const navigate = (index) => {
           <span class="nav__toggle-icon" />
         </button>
         <Transition name="fade-slide">
-          <span v-if="isOpen" class="nav__label-text">MENU</span>
+          <span
+            v-if="isOpen"
+            class="nav__label-text"
+          >MENU</span>
         </Transition>
       </div>
       <div class="nav__progress-container">

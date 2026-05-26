@@ -34,7 +34,7 @@ const displayProject = computed(() => {
 // Text processing for stylized bullets
 const formatContent = (text) => {
   if (!text) return []
-  return text.split('\n').map(line => {
+  return text.split('\n').map((line) => {
     const trimmed = line.trim()
     if (trimmed.startsWith('-')) {
       return { type: 'bullet', content: trimmed.substring(1).trim() }
@@ -227,7 +227,7 @@ const formatContent = (text) => {
                       </h3>
                       <div
                         class="text-sm sm:text-base leading-relaxed text-[rgba(232,247,255,0.85)] font-normal"
-                        :class="{ 
+                        :class="{
                           'columns-1 sm:columns-2 gap-x-10': !displayProject.isMinigame && !displayProject.isGameJam,
                           'columns-1 sm:columns-3 gap-x-10': displayProject.isGameJam
                         }"
@@ -348,4 +348,3 @@ const formatContent = (text) => {
   box-shadow: 0 0 8px var(--accent);
 }
 </style>
-
