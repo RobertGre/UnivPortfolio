@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 useHead({
   title: 'Robert Catalin Crisan | Portfolio',
   meta: [
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    { name: 'viewport', content: 'width=1280' },
     { name: 'description', content: 'Portfolio of Robert Catalin Crisan - Game Developer and Technical Programmer' }
   ],
   htmlAttrs: {
@@ -135,12 +135,21 @@ onMounted(() => {
 
 <style>
 /* Reset and Base Styles */
-body {
+html, body {
   margin: 0;
   padding: 0;
   background: #000000 !important;
   color: #e8f7ff;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
+#root, #__nuxt, .portfolio-root {
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100vw;
 }
 
 .portfolio-root {

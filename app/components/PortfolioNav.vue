@@ -13,6 +13,7 @@ defineProps({
 const emit = defineEmits(['navigate'])
 
 const isOpen = ref(false)
+const isGlobalModalOpen = useState('isModalActive', () => false)
 
 const toggleNav = () => {
   isOpen.value = !isOpen.value
@@ -25,8 +26,11 @@ const navigate = (index) => {
 
 <template>
   <nav
-    class="nav"
-    :class="{ 'nav--open': isOpen }"
+    class="nav transition-opacity duration-300"
+    :class="[
+      { 'nav--open': isOpen },
+      isGlobalModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
+    ]"
   >
     <div class="nav__controls">
       <div class="nav__toggle-container">

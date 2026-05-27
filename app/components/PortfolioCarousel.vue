@@ -76,6 +76,42 @@ const handleBlur = () => {
   isWindowFocused.value = false
 }
 
+let touchStartX = 0
+let touchStartY = 0
+
+const handleTouchStartLocal = (e) => {
+  touchStartX = e.touches[0].clientX
+  touchStartY = e.touches[0].clientY
+}
+
+const handleTouchMoveLocal = (e) => {
+  // If moving horizontally more than vertically, prevent default browser behavior
+  const deltaX = Math.abs(e.touches[0].clientX - touchStartX)
+  const deltaY = Math.abs(e.touches[0].clientY - touchStartY)
+  
+  if (deltaX > deltaY && deltaX > 10) {
+    // We are swiping horizontally, stop page from moving
+    // Note: requires passive: false on the event listener, but Vue's @touchmove is passive by default unless we use .prevent or .passive
+  }
+}
+
+const handleTouchEndLocal = (e) => {
+  const touchEndX = e.changedTouches[0].clientX
+  const touchEndY = e.changedTouches[0].clientY
+  
+  const deltaX = touchStartX - touchEndX
+  const deltaY = Math.abs(touchStartY - touchEndY)
+
+  // Only trigger if horizontal swipe is significantly larger than vertical movement
+  if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > deltaY) {
+    if (deltaX > 0) {
+      nextRotation()
+    } else {
+      prevRotation()
+    }
+  }
+}
+
 // Close modal on scroll
 const handleGlobalScroll = (e) => {
   if (isModalOpen.value) {
@@ -122,44 +158,53 @@ onUnmounted(() => {
 // 3D Math for Bent Cylinder
 const radius = computed(() => {
   const count = props.items.length
-  const width = 340
-  // Dynamic base radius calculation
+  // Adjusted radius for 20% smaller cards
+  if (count <= 3) return 340
+  
+  const width = 272 // 80% of 340
   const baseRadius = Math.round((width / 2) / Math.tan(Math.PI / count))
-
-  // Adaptive offset: smaller sets (like 3 items) get a much smaller offset
-  // to keep the "previous/next" cards visible and accessible.
-  const adaptiveOffset = count <= 3 ? 120 : 300
-
-  return baseRadius + adaptiveOffset
+  return baseRadius + 240 // 80% of 300 offset
 })
 
 const getItemStyle = (index) => {
   const count = props.items.length
-  const angle = 360 / count
-  const itemAngle = angle * index
+  const baseAngle = 360 / count
+  
+  // Calculate relative index for the shortest path
+  let relIndex = index - rotationIndex.value
+  const half = count / 2
+  while (relIndex > half) relIndex -= count
+  while (relIndex <= -half) relIndex += count
+  
+  // DYNAMIC SEPARATION
+  const compressionFactor = count <= 3 ? 0.4 : (count <= 6 ? 0.7 : 1.0)
+  const visualRelAngle = relIndex * baseAngle * compressionFactor
+  
+  const absVisualAngle = Math.abs(visualRelAngle)
 
-  const relAngle = ((itemAngle - angle * rotationIndex.value + 180) % 360 + 360) % 360 - 180
-  const absRelAngle = Math.abs(relAngle)
+  // Tilt cards to face the viewer
+  const angleCorrection = -visualRelAngle * 0.5
+  const skewY = visualRelAngle * 0.02
 
-  const angleCorrection = -relAngle * 0.35
-  const skewY = relAngle * 0.05
-
-  // WIDE RECTANGLE SCALING - Now uniform to prevent stretching
+  // Scaling logic
   let scale = 1
-  if (absRelAngle < angle) {
-    const t = 1 - (absRelAngle / angle)
-    scale = 1 + (t * 0.45) // Uniform scale factor
+  if (absVisualAngle < 30) { 
+    const t = 1 - (absVisualAngle / 30)
+    scale = 1 + (t * 0.45)
+  } else {
+    scale = 0.9
   }
 
-  const brightness = Math.max(1.1 - absRelAngle / 100, 0.2)
-  const opacity = Math.max(1.1 - absRelAngle / 120, 0.3)
+  // Visual falloff
+  const brightness = Math.max(1.1 - absVisualAngle / 150, 0.3)
+  const opacity = Math.max(1.2 - absVisualAngle / 150, 0.5)
 
   return {
-    transform: `rotateY(${itemAngle}deg) translateZ(${radius.value}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scale})`,
-    filter: absRelAngle > 1 ? `brightness(${brightness})` : 'none',
+    transform: `rotateY(${visualRelAngle}deg) translateZ(${radius.value}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scale})`,
+    filter: absVisualAngle > 1 ? `brightness(${brightness})` : 'none',
     opacity: opacity,
-    zIndex: Math.round(1000 - absRelAngle),
-    transition: 'transform 0.8s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.4s ease',
+    zIndex: Math.round(1000 - absVisualAngle),
+    transition: 'transform 0.8s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.4s ease, filter 0.4s ease',
     willChange: 'transform, opacity'
   }
 }
@@ -167,25 +212,29 @@ const getItemStyle = (index) => {
 // Enhanced Shading
 const getCardShading = (index) => {
   const count = props.items.length
-  const angle = 360 / count
-  const itemAngle = angle * index
-  const relAngle = ((itemAngle - angle * rotationIndex.value + 180) % 360 + 360) % 360 - 180
+  const baseAngle = 360 / count
+  
+  let relIndex = index - rotationIndex.value
+  const half = count / 2
+  while (relIndex > half) relIndex -= count
+  while (relIndex <= -half) relIndex += count
+  
+  const compressionFactor = count <= 3 ? 0.4 : (count <= 6 ? 0.7 : 1.0)
+  const visualRelAngle = relIndex * baseAngle * compressionFactor
 
-  const highlightPos = 50 + (relAngle * 1.2)
-  const shadowSide = relAngle > 0 ? 'right' : 'left'
-  const shadowIntensity = Math.min(Math.abs(relAngle) / 60, 0.6)
+  const highlightPos = 50 + (visualRelAngle * 1.2)
+  const shadowSide = visualRelAngle > 0 ? 'right' : 'left'
+  const shadowIntensity = Math.min(Math.abs(visualRelAngle) / 80, 0.5)
 
   return {
-    background: `radial-gradient(circle at ${highlightPos}% 30%, rgba(255,255,255,0.12) 0%, transparent 60%),
+    background: `radial-gradient(circle at ${highlightPos}% 30%, rgba(255,255,255,0.1) 0%, transparent 60%),
                 linear-gradient(to ${shadowSide}, rgba(0,0,0,${shadowIntensity}) 0%, transparent 50%)`
   }
 }
 
 const ringStyle = computed(() => {
-  const count = props.items.length
-  const angle = 360 / count
   return {
-    transform: `translateZ(${-radius.value}px) rotateY(${-angle * rotationIndex.value}deg)`
+    transform: 'translateZ(0px) rotateY(0deg)' // Ring is now a static container
   }
 })
 
@@ -201,13 +250,34 @@ const handleCardClick = (index) => {
     rotationIndex.value += diff
   }
 }
+
+const handleModalNext = () => {
+  nextRotation()
+  nextTick(() => {
+    selectedProject.value = props.items[currentIndex.value]
+  })
+}
+
+const handleModalPrev = () => {
+  prevRotation()
+  nextTick(() => {
+    selectedProject.value = props.items[currentIndex.value]
+  })
+}
+
+// Expose methods for keyboard navigation from parent
+defineExpose({
+  next: nextRotation,
+  prev: prevRotation,
+  triggerClick: () => handleCardClick(currentIndex.value)
+})
 </script>
 
 <template>
   <section
     :id="id"
     ref="carouselRef"
-    class="projects section"
+    class="projects section touch-y"
     @mouseenter="isPaused = true"
     @mouseleave="isPaused = false"
   >
@@ -229,6 +299,8 @@ const handleCardClick = (index) => {
       <div
         class="carousel"
         :aria-label="`${title} carousel`"
+        @touchstart="handleTouchStartLocal"
+        @touchend="handleTouchEndLocal"
       >
         <div class="carousel__viewport">
           <div class="sphere-glow" />
@@ -318,6 +390,8 @@ const handleCardClick = (index) => {
         :project="selectedProject"
         :section-title="title"
         @close="isModalOpen = false"
+        @next="handleModalNext"
+        @prev="handleModalPrev"
       />
     </div>
   </section>
@@ -328,6 +402,10 @@ const handleCardClick = (index) => {
   position: relative;
   height: 100vh;
   overflow: visible !important;
+}
+
+.touch-y {
+  touch-action: pan-y pinch-zoom !important;
 }
 
 .carousel {
@@ -393,16 +471,16 @@ const handleCardClick = (index) => {
 
 .carousel__item-3d {
   position: absolute;
-  width: 500px;
-  height: 700px;
+  width: 400px;
+  height: 560px;
   left: 50%;
   top: 50%;
   transform-origin: center center;
   backface-visibility: hidden;
   pointer-events: auto;
   overflow: visible !important;
-  margin-left: -250px;
-  margin-top: -350px;
+  margin-left: -200px;
+  margin-top: -280px;
 }
 
 .glow-boundary {
@@ -446,24 +524,26 @@ const handleCardClick = (index) => {
   height: 3px;
   background: rgba(116, 245, 255, 0.1);
   transition: all 0.5s ease;
+  border-radius: 1px;
 }
 
 .counter-dot.active {
   background: var(--accent);
   box-shadow: 0 0 10px var(--accent);
   width: 30px;
+  border-radius: 2px;
 }
 
-/* Bent Card Styling - FIXED CARD SIZE */
+/* Bent Card Styling - FIXED CARD SIZE REDUCED BY 20% */
 .bent-card {
-  width: 340px; /* Actual card size remains fixed */
-  height: 480px;
+  width: 272px; /* 340 * 0.8 */
+  height: 384px; /* 480 * 0.8 */
   position: relative;
   background: transparent;
-  border-radius: 32px;
+  border-radius: 26px;
   transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
   overflow: visible !important;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
   border: 2px solid transparent;
   outline: none !important;
   user-select: none;
@@ -485,7 +565,7 @@ const handleCardClick = (index) => {
   inset: 0;
   z-index: 5;
   pointer-events: none;
-  border-radius: 32px;
+  border-radius: 26px;
   mix-blend-mode: multiply;
   transition: background 1s ease;
 }
@@ -494,15 +574,15 @@ const handleCardClick = (index) => {
   width: 100%;
   height: 100%;
   background: transparent;
-  border-radius: 30px;
+  border-radius: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 3.5rem;
+  padding-bottom: 2.8rem;
   text-align: center;
   position: relative;
-  overflow: hidden; /* Cops ONLY the image */
+  overflow: hidden;
 }
 
 .card__image-bent {
@@ -574,17 +654,37 @@ const handleCardClick = (index) => {
 
 @media (max-width: 800px) {
   .carousel {
-    height: 600px;
+    height: 500px;
+    perspective: 2000px;
   }
-  .carousel__viewport, .carousel__item-3d {
-    width: 280px;
-    height: 420px;
+  .carousel__viewport {
+    width: 100%;
+    height: 400px;
+  }
+  .carousel__item-3d {
+    width: 200px;
+    height: 300px;
+    margin-left: -100px;
+    margin-top: -150px;
+  }
+  .bent-card {
+    width: 180px;
+    height: 260px;
+    border-radius: 16px;
+  }
+  .bent-card__inner {
+    border-radius: 14px;
+    padding-bottom: 1.5rem;
   }
   .carousel__nav-overlay {
     width: 100%;
+    height: 400px;
   }
   .nav-zone--side {
-    width: 80px;
+    width: 60px;
+  }
+  .carousel__counter {
+    top: calc(50% + 220px);
   }
 }
 </style>

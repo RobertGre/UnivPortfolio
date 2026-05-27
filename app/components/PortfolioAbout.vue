@@ -31,42 +31,62 @@
       </div>
       <div class="about__card about__card--accent">
         <h3>Reach Out</h3>
-        <p class="about__item flex items-center gap-2">
+        <p class="about__item flex items-center gap-3">
           <UIcon
             name="i-lucide-mail"
-            class="text-[var(--accent)]"
+            class="text-[var(--accent)] text-lg"
           />
           <a
             href="mailto:robert.crisan2106@gmail.com"
-            class="nav__link"
-            style="display: inline; text-transform: none; letter-spacing: normal;"
+            class="about__link"
           >robert.crisan2106@gmail.com</a>
         </p>
-        <p class="about__item flex items-center gap-2">
+        <p class="about__item flex items-center gap-3">
           <UIcon
             name="i-lucide-linkedin"
-            class="text-[var(--accent)]"
+            class="text-[var(--accent)] text-lg"
           />
           <a
             href="https://www.linkedin.com/in/robertcatalincrisan/"
             target="_blank"
-            class="nav__link"
-            style="display: inline; text-transform: none; letter-spacing: normal;"
+            class="about__link"
           >linkedin.com/in/robertcatalincrisan</a>
         </p>
-        <p class="about__item flex items-center gap-2">
+        <p class="about__item flex items-center gap-3">
           <UIcon
             name="i-lucide-github"
-            class="text-[var(--accent)]"
+            class="text-[var(--accent)] text-lg"
           />
           <a
             href="https://github.com/RobertGre"
             target="_blank"
-            class="nav__link"
-            style="display: inline; text-transform: none; letter-spacing: normal;"
+            class="about__link"
           >github.com/RobertGre</a>
         </p>
       </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+.about__link {
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(116, 245, 255, 0.1);
+  display: inline-block;
+}
+
+.about__link:hover {
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(116, 245, 255, 0.4);
+  transform: translateX(4px);
+  background: rgba(116, 245, 255, 0.08);
+  border-color: var(--accent);
+}
+</style>

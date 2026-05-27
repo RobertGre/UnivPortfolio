@@ -80,17 +80,6 @@ const games = [
     learned: 'Taught the value of "technical glue" roles, the absolute necessity of strict Git version control, and timeboxing tasks under extreme pressure. Cemented industry standards for rapid iteration and hardware preparedness.',
     done: 'The Monster Rush:\n- UI Programmer & Audio Integrator. Subverted the "Moderation" theme with rule-breaking comedic loops.\n\nSplash N\' Dash:\n- Technical Developer & 3D Artist. Physics-based QWOP-style kayaking prototype under extreme logistical hurdles.\n\nColosseum Ascendant:\n- Support Programmer. Swords and Sandals-inspired RPG withStat allocation and knowledge checks.',
     youtube: '3mIomRHWbt8'
-  },
-  {
-    title: 'Peter Defeater',
-    year: '2025',
-    isTech: true,
-    bg: peterCard,
-    description: '2D top-down shooter (Unity/C#) built as an academic showcase for strict OOP methodologies. Features modular weapon systems, hierarchical AI, and clean data encapsulation for code reusability.',
-    learned: 'Deep dive into advanced software architecture. Learned to separate core logic from standard MonoBehaviours, building robust hierarchies where new content can be added with minimal friction.',
-    done: 'Core Technical Contributions:\n- Designed polymorphic weapon architecture using custom base classes.\n- Architected modular enemy framework with hierarchical AI behaviors.\n- Implemented Enum-based state machines and Physics2D raycast detection.\n- Enforced strict encapsulation and clean code principles throughout.',
-    summary: 'Developed a scalable OOP-driven architecture in Unity, featuring a polymorphic weapon system, hierarchical AI frameworks for diverse enemy behaviors, and dynamic loot systems, all built on strict encapsulation principles for high code reusability and long-term maintainability.',
-    youtube: '6YwtFNX7aBQ'
   }
 ]
 
@@ -106,6 +95,18 @@ const techProjects = [
     youtube: '2A2KRqsTGFw'
   },
   {
+    title: 'OOP SHOWCASE',
+    fullTitle: 'Peter Defeater (OOP)',
+    year: '2025',
+    isTech: true,
+    bg: peterCard,
+    description: '2D top-down shooter (Unity/C#) built as an academic showcase for strict OOP methodologies. Features modular weapon systems, hierarchical AI, and clean data encapsulation for code reusability.',
+    learned: 'Deep dive into advanced software architecture. Learned to separate core logic from standard MonoBehaviours, building robust hierarchies where new content can be added with minimal friction.',
+    done: 'Core Technical Contributions:\n- Designed polymorphic weapon architecture using custom base classes.\n- Architected modular enemy framework with hierarchical AI behaviors.\n- Implemented Enum-based state machines and Physics2D raycast detection.\n- Enforced strict encapsulation and clean code principles throughout.',
+    summary: 'Developed a scalable OOP-driven architecture in Unity, featuring a polymorphic weapon system, hierarchical AI frameworks for diverse enemy behaviors, and dynamic loot systems, all built on strict encapsulation principles for high code reusability and long-term maintainability.',
+    youtube: '6YwtFNX7aBQ'
+  },
+  {
     title: 'SHADER PROGRAMMING',
     isTech: true,
     bg: shaderBg,
@@ -114,24 +115,6 @@ const techProjects = [
     done: 'Engineered a suite of custom mathematical shaders including a parallax ray-traced demon eye, procedural fire, and volume-less fluid simulation bypassing traditional rendering pipelines to maximize GPU performance.',
     summary: 'A technical showcase of advanced GPU optimization featuring custom HLSL shaders for procedural ray-traced parallax effects, CPU-less volumetric fluid simulations, and mathematically driven fire effects (FBM) that eliminate overdraw while maintaining high Cinematic performance.',
     youtube: 'BtiMmb95DH4'
-  },
-  {
-    title: 'TBA',
-    year: '2026',
-    hideLinks: true,
-    bg: 'https://picsum.photos/seed/tba/800/600',
-    description: 'More technical projects and software engineering showcases coming soon.',
-    learned: 'In progress...',
-    done: 'Coming soon...'
-  },
-  {
-    title: 'TBA',
-    year: '2026',
-    hideLinks: true,
-    bg: 'https://picsum.photos/seed/tba2/800/600',
-    description: 'In development: Next-generation software solutions and technical research.',
-    learned: 'Stay tuned...',
-    done: 'Details arriving soon...'
   }
 ]
 
@@ -162,12 +145,24 @@ const scrollToSection = (index) => {
   history.pushState(null, null, `#${sections[index].id}`)
 }
 
+const isTouchDevice = () => {
+  if (typeof window === 'undefined') return false
+  // Use innerWidth instead of maxTouchPoints. Many modern Windows laptops 
+  // report touch points, breaking mouse-wheel logic.
+  // 1024px and below is typically considered our "mobile/tablet" cutoff.
+  return window.innerWidth <= 1024
+}
+
 const handleWheel = (e) => {
   // Hard lock: stop all native and snap scrolling if modal is open
   if (isGlobalModalOpen.value) {
+    // If the target is the modal or inside it, don't prevent default to allow modal scrolling
+    if (e.target.closest('.project-modal')) return
     e.preventDefault()
     return
   }
+
+  if (isTouchDevice()) return // Disable wheel snapping on mobile/tablet viewports
 
   e.preventDefault()
   if (isAutoScrolling.value) return
@@ -178,8 +173,54 @@ const handleWheel = (e) => {
   }
 }
 
+const gamesCarousel = ref(null)
+const techCarousel = ref(null)
+
 const handleKeyDown = (e) => {
+  if (isGlobalModalOpen.value) {
+    if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Space'].includes(e.code)) {
+      e.preventDefault()
+    }
+    return
+  }
+
+  // Horizontal Carousel Navigation (Left/Right Arrows)
+  if (e.key === 'ArrowRight') {
+    if (sections[currentIndex.value].id === 'games' && gamesCarousel.value) {
+      gamesCarousel.value.next()
+      return
+    }
+    if (sections[currentIndex.value].id === 'technical-projects' && techCarousel.value) {
+      techCarousel.value.next()
+      return
+    }
+  }
+  if (e.key === 'ArrowLeft') {
+    if (sections[currentIndex.value].id === 'games' && gamesCarousel.value) {
+      gamesCarousel.value.prev()
+      return
+    }
+    if (sections[currentIndex.value].id === 'technical-projects' && techCarousel.value) {
+      techCarousel.value.prev()
+      return
+    }
+  }
+
+  // Enter Key: Trigger click (open modal) on active project
+  if (e.key === 'Enter') {
+    if (sections[currentIndex.value].id === 'games' && gamesCarousel.value) {
+      gamesCarousel.value.triggerClick()
+      return
+    }
+    if (sections[currentIndex.value].id === 'technical-projects' && techCarousel.value) {
+      techCarousel.value.triggerClick()
+      return
+    }
+  }
+
   if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Space'].includes(e.code)) {
+    if (isTouchDevice()) return
+
     e.preventDefault()
     if (isAutoScrolling.value) return
     if (['ArrowDown', 'PageDown', 'Space'].includes(e.code)) {
@@ -190,28 +231,35 @@ const handleKeyDown = (e) => {
   }
 }
 
-let touchStartY = 0
-const handleTouchStart = (e) => {
-  if (isGlobalModalOpen.value) {
-    e.preventDefault()
-    return
+// Reactively lock the body to prevent middle-click scrolling and all other native scroll methods
+watch(isGlobalModalOpen, (isOpen) => {
+  if (isOpen) {
+    document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
+  } else {
+    document.body.style.overflow = ''
+    document.body.style.touchAction = ''
   }
-  touchStartY = e.changedTouches[0].screenY
+}, { immediate: true })
+
+const updateIndexOnScroll = () => {
+  if (isAutoScrolling.value) return
+  
+  const scrollPos = window.scrollY + window.innerHeight / 2
+  const newIndex = sections.findIndex((section) => {
+    const el = document.getElementById(section.id)
+    if (!el) return false
+    return scrollPos >= el.offsetTop && scrollPos < el.offsetTop + el.offsetHeight
+  })
+
+  if (newIndex !== -1 && newIndex !== currentIndex.value) {
+    currentIndex.value = newIndex
+    history.replaceState(null, null, `#${sections[newIndex].id}`)
+  }
 }
 
-const handleTouchEnd = (e) => {
-  if (isGlobalModalOpen.value) {
-    e.preventDefault()
-    return
-  }
-  if (isAutoScrolling.value) return
-  const touchEndY = e.changedTouches[0].screenY
-  const deltaY = touchStartY - touchEndY
-  if (deltaY > 5) {
-    scrollToSection(currentIndex.value + 1)
-  } else if (deltaY < -5) {
-    scrollToSection(currentIndex.value - 1)
-  }
+const handleMouseDown = (e) => {
+  if (e.button === 1) e.preventDefault()
 }
 
 onMounted(() => {
@@ -237,8 +285,8 @@ onMounted(() => {
 
   window.addEventListener('wheel', handleWheel, { passive: false })
   window.addEventListener('keydown', handleKeyDown, { passive: false })
-  window.addEventListener('touchstart', handleTouchStart, { passive: false })
-  window.addEventListener('touchend', handleTouchEnd, { passive: false })
+  window.addEventListener('mousedown', handleMouseDown)
+  window.addEventListener('scroll', updateIndexOnScroll)
 
   const hash = window.location.hash.replace('#', '')
   if (hash) {
@@ -256,8 +304,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('wheel', handleWheel)
   window.removeEventListener('keydown', handleKeyDown)
-  window.removeEventListener('touchstart', handleTouchStart)
-  window.removeEventListener('touchend', handleTouchEnd)
+  window.removeEventListener('mousedown', handleMouseDown)
+  window.removeEventListener('scroll', updateIndexOnScroll)
 })
 </script>
 
@@ -273,6 +321,7 @@ onUnmounted(() => {
 
     <PortfolioCarousel
       id="games"
+      ref="gamesCarousel"
       label="GAME PROJECTS"
       title="Games Showcase"
       :items="games"
@@ -280,8 +329,9 @@ onUnmounted(() => {
 
     <PortfolioCarousel
       id="technical-projects"
+      ref="techCarousel"
       label="TECHNICAL PROJECTS"
-      title="Technical Project"
+      title="Technical Projects"
       :items="techProjects"
     />
 

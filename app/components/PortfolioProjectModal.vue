@@ -7,15 +7,26 @@ const props = defineProps({
   project: {
     type: Object,
     default: () => null
+  },
+  hasNext: {
+    type: Boolean,
+    default: true
+  },
+  hasPrev: {
+    type: Boolean,
+    default: true
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['update:modelValue', 'close', 'next', 'prev'])
 
 const closeModal = () => {
   emit('update:modelValue', false)
   emit('close')
 }
+
+const handleNext = () => emit('next')
+const handlePrev = () => emit('prev')
 
 // Mock project fallback
 const displayProject = computed(() => {
@@ -42,55 +53,92 @@ const formatContent = (text) => {
     return { type: 'text', content: line }
   })
 }
+
+const handleGlobalKeydown = (e) => {
+  if (!props.modelValue) return
+  if (e.key === 'ArrowRight') handleNext()
+  if (e.key === 'ArrowLeft') handlePrev()
+  if (e.key === 'Escape') closeModal()
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
 </script>
 
 <template>
   <Transition name="modal-fade">
     <div
       v-if="modelValue"
-      class="fixed inset-0 z-[2000000] flex items-center justify-center p-4 sm:p-8"
+      class="fixed inset-0 z-[2000000] flex items-center justify-center p-4 sm:p-20"
     >
       <!-- Backdrop -->
       <div
-        class="absolute inset-0 bg-[#000000]/90 backdrop-blur-xl"
+        class="absolute inset-0 bg-[#000000]/95 backdrop-blur-2xl"
         @click="closeModal"
       />
 
+      <!-- External Navigation Arrows ( Gutters ) -->
+      <div class="absolute inset-y-0 inset-x-0 pointer-events-none flex items-center justify-between z-[2000002] px-1 sm:px-6 lg:px-10">
+        <button
+          v-if="hasPrev"
+          class="pointer-events-auto w-8 h-16 sm:w-12 sm:h-32 rounded-xl sm:rounded-2xl bg-black/80 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-[var(--accent)] hover:text-black transition-all group shadow-[0_0_20px_rgba(0,0,0,0.5)] active:scale-95"
+          aria-label="Previous project"
+          @click="handlePrev"
+        >
+          <UIcon name="i-lucide-chevron-left" class="text-lg sm:text-2xl" />
+          <span class="hidden sm:block text-[8px] font-black uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">Previous</span>
+        </button>
+        <button
+          v-if="hasNext"
+          class="pointer-events-auto w-8 h-16 sm:w-12 sm:h-32 rounded-xl sm:rounded-2xl bg-black/80 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-[var(--accent)] hover:text-black transition-all group shadow-[0_0_20px_rgba(0,0,0,0.5)] active:scale-95"
+          aria-label="Next project"
+          @click="handleNext"
+        >
+          <UIcon name="i-lucide-chevron-right" class="text-lg sm:text-2xl" />
+          <span class="hidden sm:block text-[8px] font-black uppercase tracking-widest [writing-mode:vertical-lr]">Next</span>
+        </button>
+      </div>
+
       <!-- Content "Screen" -->
-      <div class="relative w-full max-w-[1400px] h-[90vh] bg-[#0a0f1e] rounded-3xl ring-1 ring-[rgba(116,245,255,0.2)] shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col">
-        <div class="project-modal p-6 sm:p-10 text-[#e8f7ff] h-full flex flex-col overflow-hidden">
-          <header class="flex justify-between items-start mb-4 py-2 flex-shrink-0">
+      <div class="relative w-full max-w-[1400px] h-full bg-[#0a0f1e] rounded-2xl sm:rounded-3xl ring-1 ring-[rgba(116,245,255,0.2)] shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col z-[2000001]">
+        <div class="project-modal py-6 px-8 sm:p-10 text-[#e8f7ff] h-full flex flex-col">
+          <header class="flex justify-between items-start mb-4 py-2 flex-shrink-0 gap-4">
             <div>
-              <h2 class="text-3xl sm:text-4xl font-black tracking-tighter uppercase text-(--accent) leading-tight">
+              <h2 class="text-2xl sm:text-4xl font-black tracking-tighter uppercase text-(--accent) leading-tight">
                 {{ displayProject.fullTitle || displayProject.title }}
               </h2>
-              <p class="text-[var(--muted)] mt-1 uppercase tracking-[0.3em] text-[10px] font-bold">
+              <p class="text-[var(--muted)] mt-1 uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[9px] sm:text-[10px] font-bold">
                 Project Deep-Dive
               </p>
             </div>
             <button
-              class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-[var(--accent)] hover:text-[#000] transition-colors group"
+              class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center bg-white/5 hover:bg-[var(--accent)] hover:text-[#000] transition-colors group flex-shrink-0"
               aria-label="Close modal"
               @click="closeModal"
             >
               <UIcon
                 name="i-lucide-x"
-                class="text-xl"
+                class="text-lg sm:text-xl"
               />
             </button>
           </header>
 
-          <div class="flex-1 overflow-hidden flex flex-col">
-            <div class="flex-1 overflow-y-auto pr-4 custom-scrollbar">
-              <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 content-start">
+          <div class="flex-1 overflow-hidden flex flex-col relative">
+            <div class="flex-1 overflow-y-auto pr-2 sm:pr-4 custom-scrollbar">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 content-start animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <!-- Main Content Area with Video Wrap -->
-                <div class="lg:col-span-12 space-y-10">
+                <div class="lg:col-span-12 space-y-6 sm:space-y-10">
                   <!-- Top Section: Overview & Analysis (Wraps Video) -->
-                  <div class="relative">
+                  <div class="relative flex flex-col lg:block">
                     <!-- Video positioned to the right for wrapping effect on large screens -->
                     <div
                       v-if="displayProject.youtube"
-                      class="lg:float-right lg:ml-10 lg:mb-6 w-full lg:w-[48%] aspect-video rounded-2xl overflow-hidden ring-1 ring-[var(--accent)]/30 shadow-[0_0_40px_rgba(110,61,255,0.15)] bg-[#000] relative top-1.5"
+                      class="lg:float-right lg:ml-10 mb-6 w-full lg:w-[48%] aspect-video rounded-xl sm:rounded-2xl overflow-hidden ring-1 ring-[var(--accent)]/30 shadow-[0_0_40px_rgba(110,61,255,0.15)] bg-[#000] relative lg:top-1.5 order-first lg:order-none"
                     >
                       <iframe
                         width="100%"
@@ -271,7 +319,7 @@ const formatContent = (text) => {
                       v-if="displayProject.itch"
                       :href="displayProject.itch"
                       target="_blank"
-                      class="text-xs text-[var(--accent)] flex items-center gap-1 hover:underline uppercase"
+                      class="text-xs text-[var(--accent)] flex items-center gap-1 hover:underline uppercase bg-white/5 px-2 py-1 rounded-md border border-white/10"
                     >
                       itch.io <UIcon
                         name="i-lucide-arrow-up-right"
@@ -326,6 +374,8 @@ const formatContent = (text) => {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--accent) transparent;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;

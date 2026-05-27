@@ -41,10 +41,6 @@ body {
   overflow-x: hidden;
 }
 
-body::before {
-  display: none;
-}
-
 .nav {
   position: fixed;
   top: 1rem;
@@ -82,7 +78,7 @@ body::before {
   height: 44px;
   background: var(--accent);
   border: 1px solid var(--accent-strong);
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -183,7 +179,7 @@ body::before {
   height: 10px;
   background: var(--surface-strong);
   border: 2px solid var(--muted);
-  border-radius: 50%;
+  border-radius: 3px;
   transition: all 0.3s ease;
   z-index: 1;
   cursor: pointer;
@@ -195,6 +191,7 @@ body::before {
   background: var(--accent-strong);
   border-color: var(--accent);
   box-shadow: 0 0 10px var(--accent);
+  border-radius: 4px;
 }
 
 .nav__menu {
@@ -254,7 +251,12 @@ body::before {
   white-space: nowrap;
 }
 
-.nav__link:hover,
+.nav__link:hover {
+  color: var(--accent);
+  transform: translateX(10px);
+  text-shadow: 0 0 10px var(--accent);
+}
+
 .nav__link--active {
   color: var(--accent-strong);
   transform: translateX(10px);
@@ -282,7 +284,7 @@ main {
   background: transparent;
   z-index: 2;
   will-change: transform, opacity;
-  margin-bottom: 40vh; /* Increased spacing to 40% of viewport height */
+  margin-bottom: 40vh;
 }
 
 .section:last-child {
@@ -394,7 +396,7 @@ main {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-.hero__subtitle {
+.hero__tagline {
   margin: 1.5rem auto 0;
   color: var(--muted);
   max-width: 720px;
@@ -402,222 +404,9 @@ main {
   font-size: 1.05rem;
 }
 
-.carousel {
-  width: min(100%, 900px);
-  max-width: 1000px;
-  display: grid;
-  gap: 2rem;
-  place-items: center;
-}
-
-.carousel__viewport {
-  position: relative;
-  width: min(100%, 960px);
-  height: 720px;
-  perspective: 1400px;
-}
-
-.carousel__items {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  pointer-events: auto;
-}
-
-.carousel__item {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 320px;
-  min-width: 320px;
-  display: none;
-  opacity: 0;
-  transform: translate(-50%, -50%) translate3d(0, 0, 0px) scale(0.72) rotateY(0deg);
-  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease;
-  pointer-events: auto;
-  z-index: 1;
-}
-
-.carousel__item.visible {
-  display: block;
-  opacity: 1;
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.carousel__item.active {
-  width: 60%;
-  min-width: 320px;
-  max-width: 800px;
-  transform: translate(-50%, -50%) translate3d(0, 0, 0px) rotateY(0deg) scale(1);
-  z-index: 12;
-}
-
-.carousel__item.prev,
-.carousel__item.next {
-  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease, box-shadow 0.3s ease;
-  z-index: 10;
-  width: 25%;
-  min-width: 140px;
-  max-width: 300px;
-}
-
-.carousel__item.prev {
-  transform: translate(-50%, -50%) translate3d(-160%, 0, 0px) rotateY(-20deg);
-  z-index: 10;
-}
-
-.carousel__item.next {
-  transform: translate(-50%, -50%) translate3d(160%, 0, 0px) rotateY(20deg);
-  z-index: 10;
-}
-
-.carousel__item.prev:hover,
-.carousel__item.next:hover {
-  z-index: 16;
-}
-
-.carousel__item.prev:hover .carousel__card,
-.carousel__item.next:hover .carousel__card {
-  border: 2px solid var(--accent-strong);
-  box-shadow: 0 18px 56px rgba(110, 61, 255, 0.22), 0 0 80px rgba(110, 61, 255, 0.12);
-}
-
-@media (max-width: 1100px) {
-  .carousel__viewport {
-    height: 620px;
-  }
-  .carousel__item.active {
-    width: 65%;
-    min-width: 300px;
-  }
-  .carousel__item.prev {
-    transform: translate(-50%, -50%) translate3d(-130%, 0, 0px) rotateY(-16deg);
-  }
-  .carousel__item.next {
-    transform: translate(-50%, -50%) translate3d(130%, 0, 0px) rotateY(16deg);
-  }
-}
-
-@media (max-width: 700px) {
-  .carousel__viewport {
-    height: 520px;
-  }
-  .carousel__item {
-    width: 240px;
-    min-width: 240px;
-  }
-  .carousel__item.active {
-    width: 240px;
-  }
-  .carousel__item.prev,
-  .carousel__item.next {
-    width: 30px !important;
-    min-width: 30px !important;
-    overflow: hidden;
-  }
-  .carousel__item.prev .carousel__card,
-  .carousel__item.next .carousel__card {
-    padding: 0;
-    opacity: 0.5;
-    border-radius: 8px;
-    width: 100%;
-    min-height: calc(520px * 0.7);
-  }
-  .carousel__item.prev h3, .carousel__item.next h3, 
-  .carousel__item.prev .card__image, .carousel__item.next .card__image {
-    display: none;
-  }
-  .carousel__item.prev {
-    transform: translate(-50%, -50%) translate3d(-140px, 0, 0px) rotateY(-5deg) !important;
-  }
-  .carousel__item.next {
-    transform: translate(-50%, -50%) translate3d(140px, 0, 0px) rotateY(5deg) !important;
-  }
-}
-.carousel__item.hidden {
-  display: none;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.carousel__card {
-  display: grid;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #0c0c0f;
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-  min-height: 660px;
-  will-change: transform;
-}
-
-.carousel__item.prev .carousel__card,
-.carousel__item.next .carousel__card {
-  min-height: calc(660px * 0.75);
-}
-
-.carousel__item.active .carousel__card {
-  min-height: 660px;
-}
-
-.carousel__item:not(.active) .carousel__card {
-  filter: brightness(0.9);
-}
-
-.card__image {
-  height: 360px;
-  min-height: 320px;
-  width: 100%;
-  border-radius: 18px;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  border: 1px solid rgba(116, 245, 255, 0.12);
-  display: block;
-  overflow: hidden;
-  color: transparent;
-}
-
-.carousel__item.prev .card__image,
-.carousel__item.next .card__image {
-  height: calc(360px * 0.75);
-  min-height: calc(320px * 0.75);
-}
-
-.card__link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.9rem 1.2rem;
-  border-radius: 999px;
-  border: 1px solid rgba(116, 245, 255, 0.3);
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.85);
-  text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
-}
-
-.carousel__item:not(.active) .card__link {
-  pointer-events: none;
-  opacity: 0.3;
-}
-
-.card__link:hover,
-.carousel__item.active .card__link:hover {
-  color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(116, 245, 255, 0.2);
-}
-
-.carousel__controls {
-  display: none;
-}
-
 .about__grid {
   display: grid;
-  gap: 1.75rem;
+  gap: 1.5rem;
   width: min(100%, 920px);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -625,19 +414,26 @@ main {
 @media (max-width: 860px) {
   .about__grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 
 .about__card {
-  padding: 2rem;
+  padding: 1.5rem;
   background: #0c0c0f;
-  border-radius: 28px;
+  border-radius: 20px;
   position: relative;
   overflow: hidden;
   border: 1px solid transparent;
 }
 
-/* Single/Full box: Cyan to Purple Gradient */
+@media (min-width: 640px) {
+  .about__card {
+    padding: 2rem;
+    border-radius: 28px;
+  }
+}
+
 .about__card--full {
   grid-column: span 2;
   background-image: linear-gradient(#0c0c0f, #0c0c0f), 
@@ -653,13 +449,11 @@ main {
   background: linear-gradient(90deg, transparent, rgba(116, 245, 255, 0.3), transparent);
 }
 
-/* Two-box layout: Left card (Cyan) */
 .about__card:nth-child(2) {
   border-color: rgba(116, 245, 255, 0.4);
   box-shadow: inset 0 1px 0 rgba(116, 245, 255, 0.2);
 }
 
-/* Two-box layout: Right card (Purple) */
 .about__card:nth-child(3) {
   border-color: rgba(110, 61, 255, 0.4);
   box-shadow: inset 0 1px 0 rgba(110, 61, 255, 0.2);
@@ -690,37 +484,9 @@ main {
   display: inline-block;
 }
 
-@media (max-width: 860px) {
-  .carousel__item {
-    width: 170px;
-    transform: rotate(var(--item-rotation)) translate(0, -180px) rotate(calc(-1 * var(--item-rotation)));
-  }
-
-  .carousel__item.active {
-    transform: rotate(var(--item-rotation)) translate(0, -140px) rotate(calc(-1 * var(--item-rotation)));
-  }
-
-  .about__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 620px) {
   .hero__content {
     border-radius: 24px;
     padding: 2.5rem 1.5rem;
-  }
-
-  .carousel {
-    width: 100%;
-  }
-
-  .carousel__ring {
-    width: min(100%, 520px);
-  }
-
-  .carousel__item,
-  .carousel__item.active {
-    width: 150px;
   }
 }
