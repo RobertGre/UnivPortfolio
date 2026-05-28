@@ -15,6 +15,10 @@ const props = defineProps({
   hasPrev: {
     type: Boolean,
     default: true
+  },
+  sectionTitle: {
+    type: String,
+    default: 'Project'
   }
 })
 
@@ -27,6 +31,16 @@ const closeModal = () => {
 
 const handleNext = () => emit('next')
 const handlePrev = () => emit('prev')
+
+const isVideoActive = ref(false)
+const handleVideoClick = () => {
+  isVideoActive.value = true
+}
+
+// Reset video state when project changes
+watch(() => props.project, () => {
+  isVideoActive.value = false
+})
 
 // Mock project fallback
 const displayProject = computed(() => {
@@ -78,7 +92,7 @@ onUnmounted(() => {
     >
       <!-- Backdrop -->
       <div
-        class="absolute inset-0 bg-[#000000]/95 backdrop-blur-2xl"
+        class="absolute inset-0 bg-[#000000]/95 backdrop-blur-xl"
         @click="closeModal"
       />
 
@@ -105,7 +119,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Content "Screen" -->
-      <div class="relative w-full max-w-[1400px] h-full bg-[#0a0f1e] rounded-2xl sm:rounded-3xl ring-1 ring-[rgba(116,245,255,0.2)] shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col z-[2000001]">
+      <div class="relative w-[95vw] sm:w-[90vw] 2xl:w-[80vw] 3xl:w-[70vw] max-w-none h-full bg-[#0a0f1e] rounded-2xl sm:rounded-3xl ring-1 ring-[rgba(116,245,255,0.2)] shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col z-[2000001]">
         <div class="project-modal py-6 px-8 sm:p-10 text-[#e8f7ff] h-full flex flex-col">
           <header class="flex justify-between items-start mb-4 py-2 flex-shrink-0 gap-4">
             <div>
@@ -138,12 +152,28 @@ onUnmounted(() => {
                     <!-- Video positioned to the right for wrapping effect on large screens -->
                     <div
                       v-if="displayProject.youtube"
-                      class="lg:float-right lg:ml-10 mb-6 w-full lg:w-[48%] aspect-video rounded-xl sm:rounded-2xl overflow-hidden ring-1 ring-[var(--accent)]/30 shadow-[0_0_40px_rgba(110,61,255,0.15)] bg-[#000] relative lg:top-1.5 order-first lg:order-none"
+                      class="lg:float-right lg:ml-10 mb-6 w-full lg:w-[48%] aspect-video rounded-xl sm:rounded-2xl overflow-hidden ring-1 ring-[var(--accent)]/30 shadow-[0_0_40px_rgba(110,61,255,0.15)] bg-[#000] relative lg:top-1.5 order-first lg:order-none cursor-pointer group/video"
+                      :class="{ 'disable-custom-cursor active-video': isVideoActive }"
+                      @click="handleVideoClick"
                     >
+                      <template v-if="!isVideoActive">
+                        <!-- High-res Thumbnail Placeholder -->
+                        <div class="absolute inset-0 z-10 flex items-center justify-center bg-black/20 group-hover/video:bg-black/0 transition-colors">
+                          <div class="w-16 h-16 rounded-full bg-[var(--accent)]/80 flex items-center justify-center pl-1 shadow-[0_0_30px_var(--accent)] group-hover/video:scale-110 transition-transform">
+                            <UIcon name="i-lucide-play" class="text-black text-3xl" />
+                          </div>
+                        </div>
+                        <img 
+                          :src="`https://i.ytimg.com/vi/${displayProject.youtube}/maxresdefault.jpg`" 
+                          class="w-full h-full object-cover opacity-60 group-hover/video:opacity-80 transition-opacity"
+                          alt="Video thumbnail"
+                        />
+                      </template>
                       <iframe
+                        v-else
                         width="100%"
                         height="100%"
-                        :src="`https://www.youtube.com/embed/${displayProject.youtube}`"
+                        :src="`https://www.youtube.com/embed/${displayProject.youtube}?autoplay=1&rel=0`"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -347,7 +377,7 @@ onUnmounted(() => {
                     <span class="text-xs text-[#fff] font-mono">{{ displayProject.year }}</span>
                   </div>                  <div class="flex items-center gap-2">
                     <span class="text-[10px] text-[var(--muted)] uppercase tracking-widest font-bold">Category</span>
-                    <span class="text-xs text-white uppercase tracking-tighter">High-End Development</span>
+                    <span class="text-xs text-white uppercase tracking-tighter">{{ sectionTitle.includes('Technical') ? 'Technical Project' : 'Game Project' }}</span>
                   </div>
                 </div>
               </div>

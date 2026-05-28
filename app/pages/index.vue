@@ -153,6 +153,9 @@ const isTouchDevice = () => {
   return window.innerWidth <= 1024
 }
 
+const scrollCooldown = ref(false)
+let lastScrollTime = 0
+
 const handleWheel = (e) => {
   // Hard lock: stop all native and snap scrolling if modal is open
   if (isGlobalModalOpen.value) {
@@ -162,14 +165,26 @@ const handleWheel = (e) => {
     return
   }
 
+  // Prevent scrolling for a brief moment after modal closes to absorb momentum
+  if (scrollCooldown.value) {
+    e.preventDefault()
+    return
+  }
+
   if (isTouchDevice()) return // Disable wheel snapping on mobile/tablet viewports
 
   e.preventDefault()
-  if (isAutoScrolling.value) return
+  
+  const now = Date.now()
+  // Global Debounce: Wait 1.2 seconds between section snaps to absorb trackpad momentum
+  if (isAutoScrolling.value || now - lastScrollTime < 1200) return
+
   if (e.deltaY > 0) {
     scrollToSection(currentIndex.value + 1)
+    lastScrollTime = now
   } else if (e.deltaY < 0) {
     scrollToSection(currentIndex.value - 1)
+    lastScrollTime = now
   }
 }
 
@@ -234,11 +249,40 @@ const handleKeyDown = (e) => {
 // Reactively lock the body to prevent middle-click scrolling and all other native scroll methods
 watch(isGlobalModalOpen, (isOpen) => {
   if (isOpen) {
-    document.body.style.overflow = 'hidden'
-    document.body.style.touchAction = 'none'
+    if (window.innerWidth <= 1024) {
+      // Animated alignment for mobile: smoothly center the section before locking the body
+      const target = document.getElementById(sections[currentIndex.value].id)
+      if (target) {
+        const viewportHeight = window.innerHeight
+        const targetHeight = target.offsetHeight
+        const scrollToY = target.offsetTop - (viewportHeight - targetHeight) / 2
+        
+        gsap.to(window, {
+          duration: 0.4, // Matches modal fade-in time
+          scrollTo: { y: scrollToY, autoKill: false },
+          ease: 'power2.out',
+          onComplete: () => {
+            document.body.style.overflow = 'hidden'
+            document.body.style.touchAction = 'none'
+          }
+        })
+      } else {
+        document.body.style.overflow = 'hidden'
+        document.body.style.touchAction = 'none'
+      }
+    } else {
+      document.body.style.overflow = 'hidden'
+      document.body.style.touchAction = 'none'
+    }
   } else {
     document.body.style.overflow = ''
     document.body.style.touchAction = ''
+    
+    // Add scroll cooldown to prevent momentum scrolling from triggering section snap immediately after modal close
+    scrollCooldown.value = true
+    setTimeout(() => {
+      scrollCooldown.value = false
+    }, 600)
   }
 }, { immediate: true })
 

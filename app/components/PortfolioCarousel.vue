@@ -33,6 +33,20 @@ const selectedProject = ref(null)
 const carouselRef = ref(null)
 const isVisible = ref(false)
 
+const carouselScale = ref(1)
+
+const updateScale = () => {
+  if (typeof window === 'undefined') return
+  const width = window.innerWidth
+  if (width > 1024) {
+    // Desktop scaling: reduced to 75% of original baseline (0.75 * width / 1440)
+    carouselScale.value = (width / 1440) * 0.75
+  } else {
+    // Mobile scaling: remains large
+    carouselScale.value = (width / 800) * 1.1
+  }
+}
+
 const currentIndex = computed(() => {
   const len = props.items.length
   return ((rotationIndex.value % len) + len) % len
@@ -84,17 +98,6 @@ const handleTouchStartLocal = (e) => {
   touchStartY = e.touches[0].clientY
 }
 
-const handleTouchMoveLocal = (e) => {
-  // If moving horizontally more than vertically, prevent default browser behavior
-  const deltaX = Math.abs(e.touches[0].clientX - touchStartX)
-  const deltaY = Math.abs(e.touches[0].clientY - touchStartY)
-  
-  if (deltaX > deltaY && deltaX > 10) {
-    // We are swiping horizontally, stop page from moving
-    // Note: requires passive: false on the event listener, but Vue's @touchmove is passive by default unless we use .prevent or .passive
-  }
-}
-
 const handleTouchEndLocal = (e) => {
   const touchEndX = e.changedTouches[0].clientX
   const touchEndY = e.changedTouches[0].clientY
@@ -131,6 +134,8 @@ const handleGlobalScroll = (e) => {
 }
 
 onMounted(() => {
+  updateScale()
+  window.addEventListener('resize', updateScale)
   startAutoRotate()
   window.addEventListener('wheel', handleGlobalScroll, { capture: true, passive: false })
   window.addEventListener('touchmove', handleGlobalScroll, { capture: true, passive: false })
@@ -148,6 +153,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateScale)
   stopAutoRotate()
   window.removeEventListener('wheel', handleGlobalScroll, { capture: true })
   window.removeEventListener('touchmove', handleGlobalScroll, { capture: true })
@@ -158,12 +164,12 @@ onUnmounted(() => {
 // 3D Math for Bent Cylinder
 const radius = computed(() => {
   const count = props.items.length
-  // Adjusted radius for 20% smaller cards
+  // Radius optimized for original 272px cards
   if (count <= 3) return 340
   
-  const width = 272 // 80% of 340
+  const width = 272
   const baseRadius = Math.round((width / 2) / Math.tan(Math.PI / count))
-  return baseRadius + 240 // 80% of 300 offset
+  return baseRadius + 240
 })
 
 const getItemStyle = (index) => {
@@ -182,8 +188,8 @@ const getItemStyle = (index) => {
   
   const absVisualAngle = Math.abs(visualRelAngle)
 
-  // Tilt cards to face the viewer
-  const angleCorrection = -visualRelAngle * 0.5
+  // Concave Embrace Rotation
+  const angleCorrection = -visualRelAngle * 0.8
   const skewY = visualRelAngle * 0.02
 
   // Scaling logic
@@ -302,85 +308,87 @@ defineExpose({
         @touchstart="handleTouchStartLocal"
         @touchend="handleTouchEndLocal"
       >
-        <div class="carousel__viewport">
-          <div class="sphere-glow" />
+        <div class="carousel-scaler" :style="{ '--carousel-scale': carouselScale }">
+          <div class="carousel__viewport">
+            <div class="sphere-glow" />
 
-          <div class="carousel__counter">
-            <span
-              v-for="(_, i) in items"
-              :key="i"
-              class="counter-dot"
-              :class="{ active: i === currentIndex }"
-            />
-          </div>
+            <div class="carousel__counter">
+              <span
+                v-for="(_, i) in items"
+                :key="i"
+                class="counter-dot"
+                :class="{ active: i === currentIndex }"
+              />
+            </div>
 
-          <div
-            class="carousel__ring"
-            :style="ringStyle"
-          >
-            <article
-              v-for="(item, index) in items"
-              :key="index"
-              class="carousel__item-3d"
-              :class="{ 'active': currentIndex === index, 'glow-target': activeHoverIndex === index }"
-              :style="getItemStyle(index)"
-              @click.stop="handleCardClick(index)"
+            <div
+              class="carousel__ring"
+              :style="ringStyle"
             >
-              <!-- This container is now massive to prevent clipping -->
-              <div class="glow-boundary">
-                <div class="bent-card cursor-pointer border-none">
-                  <div
-                    class="bent-card__shading"
-                    :style="getCardShading(index)"
-                  />
-
-                  <div class="bent-card__inner p-4 sm:p-8">
+              <article
+                v-for="(item, index) in items"
+                :key="index"
+                class="carousel__item-3d"
+                :class="{ 'active': currentIndex === index, 'glow-target': activeHoverIndex === index }"
+                :style="getItemStyle(index)"
+                @click.stop="handleCardClick(index)"
+              >
+                <!-- This container is now massive to prevent clipping -->
+                <div class="glow-boundary">
+                  <div class="bent-card cursor-pointer border-none">
                     <div
-                      class="card__image-bent"
-                      :style="{
-                        backgroundImage: item.bg && item.bg !== '#' ? `url(${item.bg})` : '',
-                        backgroundSize: item.bgSize || 'cover',
-                        backgroundPosition: item.bgPos || 'center'
-                      }"
+                      class="bent-card__shading"
+                      :style="getCardShading(index)"
                     />
-                    <div class="bent-card__content w-full">
-                      <h3 class="text-clamp px-2">
-                        {{ item.title }}
-                      </h3>
+
+                    <div class="bent-card__inner">
                       <div
-                        v-if="currentIndex === index"
-                        class="view-indicator"
-                      >
-                        <span>TAP TO VIEW DETAILS</span>
+                        class="card__image-bent"
+                        :style="{
+                          backgroundImage: item.bg && item.bg !== '#' ? `url(${item.bg})` : '',
+                          backgroundSize: item.bgSize || 'cover',
+                          backgroundPosition: item.bgPos || 'center'
+                        }"
+                      />
+                      <div class="bent-card__content">
+                        <h3 class="text-clamp">
+                          {{ item.title }}
+                        </h3>
+                        <div
+                          v-if="currentIndex === index"
+                          class="view-indicator"
+                        >
+                          <span>TAP TO VIEW DETAILS</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            </div>
           </div>
-        </div>
 
-        <!-- Navigation Overlays moved outside 3D viewport to ensure they stay on top -->
-        <div class="carousel__nav-overlay">
-          <div
-            class="nav-zone nav-zone--side"
-            @click.stop="prevRotation"
-            @mouseenter="hoveredZone = -1"
-            @mouseleave="hoveredZone = null"
-          />
-          <div
-            class="nav-zone nav-zone--center"
-            @click.stop="handleCardClick(currentIndex)"
-            @mouseenter="hoveredZone = 0"
-            @mouseleave="hoveredZone = null"
-          />
-          <div
-            class="nav-zone nav-zone--side"
-            @click.stop="nextRotation"
-            @mouseenter="hoveredZone = 1"
-            @mouseleave="hoveredZone = null"
-          />
+          <!-- Navigation Overlays moved outside 3D viewport to ensure they stay on top -->
+          <div class="carousel__nav-overlay">
+            <div
+              class="nav-zone nav-zone--side"
+              @click.stop="prevRotation"
+              @mouseenter="hoveredZone = -1"
+              @mouseleave="hoveredZone = null"
+            />
+            <div
+              class="nav-zone nav-zone--center"
+              @click.stop="handleCardClick(currentIndex)"
+              @mouseenter="hoveredZone = 0"
+              @mouseleave="hoveredZone = null"
+            />
+            <div
+              class="nav-zone nav-zone--side"
+              @click.stop="nextRotation"
+              @mouseenter="hoveredZone = 1"
+              @mouseleave="hoveredZone = null"
+            />
+          </div>
         </div>
       </div>
 
@@ -408,6 +416,29 @@ defineExpose({
   touch-action: pan-y pinch-zoom !important;
 }
 
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.carousel-scaler {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(var(--carousel-scale, 1));
+  transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 800px;
+  height: 600px;
+}
+
 .carousel {
   width: 100%;
   height: 100%;
@@ -420,8 +451,8 @@ defineExpose({
 
 .carousel__viewport {
   position: relative;
-  width: 800px;
-  height: 600px; /* Reduced height to fit better in screen */
+  width: 100%;
+  height: 100%;
   transform-style: preserve-3d;
   margin: 0 auto;
   overflow: visible !important;
@@ -497,7 +528,7 @@ defineExpose({
 }
 
 .text-clamp {
-  font-size: clamp(0.9rem, 2.2vw, 1.6rem);
+  font-size: 18px;
   font-weight: 900;
   line-height: 1.2;
   width: 100%;
@@ -511,11 +542,11 @@ defineExpose({
 /* Counter Dots */
 .carousel__counter {
   position: absolute;
-  top: calc(50% + 380px); /* Nudged another 10px down */
+  top: calc(50% + 380px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 1rem;
+  gap: 16px;
   z-index: 1001;
 }
 
@@ -534,10 +565,10 @@ defineExpose({
   border-radius: 2px;
 }
 
-/* Bent Card Styling - FIXED CARD SIZE REDUCED BY 20% */
+/* Bent Card Styling - Restored to 272x384 baseline */
 .bent-card {
-  width: 272px; /* 340 * 0.8 */
-  height: 384px; /* 480 * 0.8 */
+  width: 272px; 
+  height: 384px;
   position: relative;
   background: transparent;
   border-radius: 26px;
@@ -579,7 +610,8 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 2.8rem;
+  padding: 16px;
+  padding-bottom: 40px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -599,10 +631,15 @@ defineExpose({
   opacity: 0.75;
 }
 
+.active.glow-target .card__image-bent {
+  opacity: 1;
+}
+
 .bent-card__content {
   position: relative;
   z-index: 2;
   width: 100%;
+  padding: 0 8px;
 }
 
 .bent-card__content h3 {
@@ -615,8 +652,8 @@ defineExpose({
 }
 
 .view-indicator {
-  margin-top: 1rem;
-  font-size: 0.7rem;
+  margin-top: 16px;
+  font-size: 11px;
   color: var(--accent);
   font-weight: 900;
   letter-spacing: 0.3em;
@@ -650,41 +687,5 @@ defineExpose({
 }
 .fade-instant-enter-from, .fade-instant-leave-to {
   opacity: 0;
-}
-
-@media (max-width: 800px) {
-  .carousel {
-    height: 500px;
-    perspective: 2000px;
-  }
-  .carousel__viewport {
-    width: 100%;
-    height: 400px;
-  }
-  .carousel__item-3d {
-    width: 200px;
-    height: 300px;
-    margin-left: -100px;
-    margin-top: -150px;
-  }
-  .bent-card {
-    width: 180px;
-    height: 260px;
-    border-radius: 16px;
-  }
-  .bent-card__inner {
-    border-radius: 14px;
-    padding-bottom: 1.5rem;
-  }
-  .carousel__nav-overlay {
-    width: 100%;
-    height: 400px;
-  }
-  .nav-zone--side {
-    width: 60px;
-  }
-  .carousel__counter {
-    top: calc(50% + 220px);
-  }
 }
 </style>

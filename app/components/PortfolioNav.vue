@@ -42,28 +42,24 @@ const navigate = (index) => {
         >
           <span class="nav__toggle-icon" />
         </button>
-        <Transition name="fade-slide">
-          <span
-            v-if="isOpen"
-            class="nav__label-text"
-          >MENU</span>
-        </Transition>
       </div>
+
       <div class="nav__progress-container">
         <div class="nav__progress">
           <div class="nav__progress-line" />
           <div
             v-for="(section, index) in sections"
-            :key="section.id"
+            :key="index"
             class="nav__dot-wrapper"
           >
             <div
               class="nav__progress-dot"
-              :class="{ active: currentIndex === index }"
+              :class="{ 'active': currentIndex === index }"
               @click="navigate(index)"
             />
           </div>
         </div>
+
         <div class="nav__menu">
           <ul class="nav__list">
             <li
@@ -85,3 +81,7 @@ const navigate = (index) => {
     </div>
   </nav>
 </template>
+
+<style scoped>
+/* Scoped styles removed as they are handled in portfolio.css */
+</style>
