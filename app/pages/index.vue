@@ -132,10 +132,10 @@ const scrollToSection = (index) => {
     const scrollToY = target.offsetTop - (viewportHeight - targetHeight) / 2
 
     gsap.to(window, {
-      duration: 0.6, // Slightly longer duration for smoother snap
+      duration: 0.8, // Slightly slower for more natural momentum absorption
       scrollTo: { y: scrollToY, autoKill: false },
-      ease: 'power4.out',
-      overwrite: true,
+      ease: 'expo.out', // Smoother deceleration
+      overwrite: 'auto',
       onComplete: () => {
         isAutoScrolling.value = false
       }

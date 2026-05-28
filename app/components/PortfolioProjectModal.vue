@@ -173,9 +173,9 @@ onUnmounted(() => {
                           </div>
                         </div>
                         <img
-                          :src="`https://i.ytimg.com/vi/${displayProject.youtube}/maxresdefault.jpg`"
-                          class="w-full h-full object-cover opacity-60 group-hover/video:opacity-80 transition-opacity"
-                          alt="Video thumbnail"
+                          :src="displayProject.bg"
+                          class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover/video:opacity-100 transition-opacity"
+                          alt="Project thumbnail"
                         >
                       </template>
                       <iframe
