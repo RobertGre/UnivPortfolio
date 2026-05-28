@@ -101,7 +101,7 @@ const handleTouchStartLocal = (e) => {
 const handleTouchEndLocal = (e) => {
   const touchEndX = e.changedTouches[0].clientX
   const touchEndY = e.changedTouches[0].clientY
-  
+
   const deltaX = touchStartX - touchEndX
   const deltaY = Math.abs(touchStartY - touchEndY)
 
@@ -166,7 +166,7 @@ const radius = computed(() => {
   const count = props.items.length
   // Radius optimized for original 272px cards
   if (count <= 3) return 340
-  
+
   const width = 272
   const baseRadius = Math.round((width / 2) / Math.tan(Math.PI / count))
   return baseRadius + 240
@@ -175,17 +175,17 @@ const radius = computed(() => {
 const getItemStyle = (index) => {
   const count = props.items.length
   const baseAngle = 360 / count
-  
+
   // Calculate relative index for the shortest path
   let relIndex = index - rotationIndex.value
   const half = count / 2
   while (relIndex > half) relIndex -= count
   while (relIndex <= -half) relIndex += count
-  
+
   // DYNAMIC SEPARATION
   const compressionFactor = count <= 3 ? 0.4 : (count <= 6 ? 0.7 : 1.0)
   const visualRelAngle = relIndex * baseAngle * compressionFactor
-  
+
   const absVisualAngle = Math.abs(visualRelAngle)
 
   // Concave Embrace Rotation
@@ -194,7 +194,7 @@ const getItemStyle = (index) => {
 
   // Scaling logic
   let scale = 1
-  if (absVisualAngle < 30) { 
+  if (absVisualAngle < 30) {
     const t = 1 - (absVisualAngle / 30)
     scale = 1 + (t * 0.45)
   } else {
@@ -219,12 +219,12 @@ const getItemStyle = (index) => {
 const getCardShading = (index) => {
   const count = props.items.length
   const baseAngle = 360 / count
-  
+
   let relIndex = index - rotationIndex.value
   const half = count / 2
   while (relIndex > half) relIndex -= count
   while (relIndex <= -half) relIndex += count
-  
+
   const compressionFactor = count <= 3 ? 0.4 : (count <= 6 ? 0.7 : 1.0)
   const visualRelAngle = relIndex * baseAngle * compressionFactor
 
@@ -308,7 +308,10 @@ defineExpose({
         @touchstart="handleTouchStartLocal"
         @touchend="handleTouchEndLocal"
       >
-        <div class="carousel-scaler" :style="{ '--carousel-scale': carouselScale }">
+        <div
+          class="carousel-scaler"
+          :style="{ '--carousel-scale': carouselScale }"
+        >
           <div class="carousel__viewport">
             <div class="sphere-glow" />
 
@@ -567,7 +570,7 @@ defineExpose({
 
 /* Bent Card Styling - Restored to 272x384 baseline */
 .bent-card {
-  width: 272px; 
+  width: 272px;
   height: 384px;
   position: relative;
   background: transparent;

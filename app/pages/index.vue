@@ -147,7 +147,7 @@ const scrollToSection = (index) => {
 
 const isTouchDevice = () => {
   if (typeof window === 'undefined') return false
-  // Use innerWidth instead of maxTouchPoints. Many modern Windows laptops 
+  // Use innerWidth instead of maxTouchPoints. Many modern Windows laptops
   // report touch points, breaking mouse-wheel logic.
   // 1024px and below is typically considered our "mobile/tablet" cutoff.
   return window.innerWidth <= 1024
@@ -174,7 +174,7 @@ const handleWheel = (e) => {
   if (isTouchDevice()) return // Disable wheel snapping on mobile/tablet viewports
 
   e.preventDefault()
-  
+
   const now = Date.now()
   // Global Debounce: Wait 1.2 seconds between section snaps to absorb trackpad momentum
   if (isAutoScrolling.value || now - lastScrollTime < 1200) return
@@ -256,7 +256,7 @@ watch(isGlobalModalOpen, (isOpen) => {
         const viewportHeight = window.innerHeight
         const targetHeight = target.offsetHeight
         const scrollToY = target.offsetTop - (viewportHeight - targetHeight) / 2
-        
+
         gsap.to(window, {
           duration: 0.4, // Matches modal fade-in time
           scrollTo: { y: scrollToY, autoKill: false },
@@ -277,7 +277,7 @@ watch(isGlobalModalOpen, (isOpen) => {
   } else {
     document.body.style.overflow = ''
     document.body.style.touchAction = ''
-    
+
     // Add scroll cooldown to prevent momentum scrolling from triggering section snap immediately after modal close
     scrollCooldown.value = true
     setTimeout(() => {
@@ -288,7 +288,7 @@ watch(isGlobalModalOpen, (isOpen) => {
 
 const updateIndexOnScroll = () => {
   if (isAutoScrolling.value) return
-  
+
   const scrollPos = window.scrollY + window.innerHeight / 2
   const newIndex = sections.findIndex((section) => {
     const el = document.getElementById(section.id)

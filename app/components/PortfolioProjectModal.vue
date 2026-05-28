@@ -104,7 +104,10 @@ onUnmounted(() => {
           aria-label="Previous project"
           @click="handlePrev"
         >
-          <UIcon name="i-lucide-chevron-left" class="text-lg sm:text-2xl" />
+          <UIcon
+            name="i-lucide-chevron-left"
+            class="text-lg sm:text-2xl"
+          />
           <span class="hidden sm:block text-[8px] font-black uppercase tracking-widest [writing-mode:vertical-lr] rotate-180">Previous</span>
         </button>
         <button
@@ -113,7 +116,10 @@ onUnmounted(() => {
           aria-label="Next project"
           @click="handleNext"
         >
-          <UIcon name="i-lucide-chevron-right" class="text-lg sm:text-2xl" />
+          <UIcon
+            name="i-lucide-chevron-right"
+            class="text-lg sm:text-2xl"
+          />
           <span class="hidden sm:block text-[8px] font-black uppercase tracking-widest [writing-mode:vertical-lr]">Next</span>
         </button>
       </div>
@@ -160,14 +166,17 @@ onUnmounted(() => {
                         <!-- High-res Thumbnail Placeholder -->
                         <div class="absolute inset-0 z-10 flex items-center justify-center bg-black/20 group-hover/video:bg-black/0 transition-colors">
                           <div class="w-16 h-16 rounded-full bg-[var(--accent)]/80 flex items-center justify-center pl-1 shadow-[0_0_30px_var(--accent)] group-hover/video:scale-110 transition-transform">
-                            <UIcon name="i-lucide-play" class="text-black text-3xl" />
+                            <UIcon
+                              name="i-lucide-play"
+                              class="text-black text-3xl"
+                            />
                           </div>
                         </div>
-                        <img 
-                          :src="`https://i.ytimg.com/vi/${displayProject.youtube}/maxresdefault.jpg`" 
+                        <img
+                          :src="`https://i.ytimg.com/vi/${displayProject.youtube}/maxresdefault.jpg`"
                           class="w-full h-full object-cover opacity-60 group-hover/video:opacity-80 transition-opacity"
                           alt="Video thumbnail"
-                        />
+                        >
                       </template>
                       <iframe
                         v-else

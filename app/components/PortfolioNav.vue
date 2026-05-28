@@ -54,7 +54,7 @@ const navigate = (index) => {
           >
             <div
               class="nav__progress-dot"
-              :class="{ 'active': currentIndex === index }"
+              :class="{ active: currentIndex === index }"
               @click="navigate(index)"
             />
           </div>

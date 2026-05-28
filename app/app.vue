@@ -27,8 +27,8 @@ onMounted(() => {
 
   if (cursor) {
     // Optimized Custom Cursor Logic - 360Hz+ Target
-    const setX = gsap.quickSetter(cursor, "x", "px")
-    const setY = gsap.quickSetter(cursor, "y", "px")
+    const setX = gsap.quickSetter(cursor, 'x', 'px')
+    const setY = gsap.quickSetter(cursor, 'y', 'px')
 
     const showCursor = () => gsap.to(cursor, { opacity: 1, duration: 0.1, overwrite: true })
     const hideCursor = () => gsap.to(cursor, { opacity: 0, duration: 1, delay: 0.2, overwrite: true })
@@ -38,21 +38,21 @@ onMounted(() => {
       gsap.set(cursor, { opacity: 1 })
     }
 
-    window.addEventListener("mousemove", e => {    
+    window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX
       mouse.y = e.clientY
       if (isTouch.value) showCursor()
     })
 
-    window.addEventListener("mousedown", () => {
+    window.addEventListener('mousedown', () => {
       if (isTouch.value) showCursor()
     })
-    
-    window.addEventListener("mouseup", () => {
+
+    window.addEventListener('mouseup', () => {
       if (isTouch.value) hideCursor()
     })
 
-    window.addEventListener("touchstart", (e) => {
+    window.addEventListener('touchstart', (e) => {
       mouse.x = e.touches[0].clientX
       mouse.y = e.touches[0].clientY
       setX(mouse.x)
@@ -60,7 +60,7 @@ onMounted(() => {
       showCursor()
     }, { passive: true })
 
-    window.addEventListener("touchend", () => {
+    window.addEventListener('touchend', () => {
       if (isTouch.value) hideCursor()
     }, { passive: true })
 
@@ -96,7 +96,6 @@ onMounted(() => {
       }
     })
   }
-
 
   gsap.registerPlugin(ScrollTrigger)
   const canvas = canvasRef.value
@@ -163,7 +162,7 @@ onMounted(() => {
         const dx = dot.x - mouse.x
         const dy = dot.y - mouse.y
         const dist = Math.sqrt(dx * dx + dy * dy)
-        const proximityRange = 25 
+        const proximityRange = 25
 
         // VISUAL REACTION & PUSH (Mouse)
         if (dist < proximityRange) {
@@ -181,7 +180,7 @@ onMounted(() => {
         for (const rect of obstacles) {
           const closestX = Math.max(rect.left, Math.min(dot.x, rect.right))
           const closestY = Math.max(rect.top, Math.min(dot.y, rect.bottom))
-          
+
           const rDx = dot.x - closestX
           const rDy = dot.y - closestY
           const rDist = Math.sqrt(rDx * rDx + rDy * rDy)
@@ -204,10 +203,19 @@ onMounted(() => {
             const distT = Math.abs(dot.y - rect.top)
             const distB = Math.abs(dot.y - rect.bottom)
             const minDist = Math.min(distL, distR, distT, distB)
-            if (minDist === distL) { dot.x = rect.left; dot.vx = -Math.abs(dot.vx); }
-            else if (minDist === distR) { dot.x = rect.right; dot.vx = Math.abs(dot.vx); }
-            else if (minDist === distT) { dot.y = rect.top; dot.vy = -Math.abs(dot.vy); }
-            else if (minDist === distB) { dot.y = rect.bottom; dot.vy = Math.abs(dot.vy); }
+            if (minDist === distL) {
+              dot.x = rect.left
+              dot.vx = -Math.abs(dot.vx)
+            } else if (minDist === distR) {
+              dot.x = rect.right
+              dot.vx = Math.abs(dot.vx)
+            } else if (minDist === distT) {
+              dot.y = rect.top
+              dot.vy = -Math.abs(dot.vy)
+            } else if (minDist === distB) {
+              dot.y = rect.bottom
+              dot.vy = Math.abs(dot.vy)
+            }
           }
         }
       }
@@ -260,7 +268,7 @@ onMounted(() => {
     // Draw Stars with Reactive Colors
     for (const dot of dots) {
       let r = 255, g = 255, b = 255
-      
+
       if (dot.excitement > 0.6) {
         // Blending to Purple: #6e3dff (110, 61, 255)
         const t = (dot.excitement - 0.6) * 2.5
@@ -299,13 +307,13 @@ onMounted(() => {
 
 <template>
   <UApp>
-    <div 
+    <div
       class="portfolio-root"
       :class="{ 'custom-cursor-active': !isTouch }"
     >
-      <div 
-        ref="cursorRef" 
-        class="custom-cursor" 
+      <div
+        ref="cursorRef"
+        class="custom-cursor"
       />
       <canvas
         ref="canvasRef"
@@ -318,7 +326,7 @@ onMounted(() => {
 
 <style>
 /* Custom Cursor Styles */
-.custom-cursor-active, 
+.custom-cursor-active,
 .custom-cursor-active * {
   cursor: none !important;
 }
