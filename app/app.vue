@@ -6,7 +6,21 @@ useHead({
   title: 'Robert Catalin Crisan | Portfolio',
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover' },
-    { name: 'description', content: 'Portfolio of Robert Catalin Crisan - Game Developer and Technical Programmer' }
+    { name: 'description', content: 'Portfolio of Robert Catalin Crisan - Game Developer and Technical Programmer' },
+    // OpenGraph Meta Tags
+    { property: 'og:title', content: 'Robert Catalin Crisan | Portfolio' },
+    { property: 'og:description', content: 'Game Developer & Technical Programmer portfolio showcasing systems engineering, XR escape rooms, AI simulations, and graphics HLSL shaders.' },
+    { property: 'og:image', content: '/UnivPortfolio/og-preview.png' },
+    { property: 'og:url', content: 'https://robertgre.github.io/UnivPortfolio/' },
+    { property: 'og:type', content: 'website' },
+    // Twitter Card Meta Tags
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: 'Robert Catalin Crisan | Portfolio' },
+    { name: 'twitter:description', content: 'Game Developer & Technical Programmer portfolio showcasing systems engineering, XR escape rooms, AI simulations, and graphics HLSL shaders.' },
+    { name: 'twitter:image', content: '/UnivPortfolio/og-preview.png' }
+  ],
+  link: [
+    { rel: 'icon', type: 'image/png', href: '/UnivPortfolio/favicon.png' }
   ],
   htmlAttrs: {
     lang: 'en'
@@ -23,78 +37,60 @@ onMounted(() => {
   isTouch.value = window.innerWidth <= 1024
 
   const mouse = { x: -2000, y: -2000 }
-  const cursor = cursorRef.value
 
-  if (cursor) {
-    // Optimized Custom Cursor Logic - 360Hz+ Target
-    const setX = gsap.quickSetter(cursor, 'x', 'px')
-    const setY = gsap.quickSetter(cursor, 'y', 'px')
+  if (!isTouch.value) {
+    const cursor = cursorRef.value
 
-    const showCursor = () => gsap.to(cursor, { opacity: 1, duration: 0.1, overwrite: true })
-    const hideCursor = () => gsap.to(cursor, { opacity: 0, duration: 1, delay: 0.2, overwrite: true })
+    if (cursor) {
+      // Optimized Custom Cursor Logic - 360Hz+ Target
+      const setX = gsap.quickSetter(cursor, 'x', 'px')
+      const setY = gsap.quickSetter(cursor, 'y', 'px')
 
-    // Set initial state based on device
-    if (!isTouch.value) {
+      const showCursor = () => gsap.to(cursor, { opacity: 1, duration: 0.1, overwrite: true })
+
+      // Set initial state based on device
       gsap.set(cursor, { opacity: 1 })
-    }
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.add('custom-cursor-active')
+      }
 
-    window.addEventListener('mousemove', (e) => {
-      mouse.x = e.clientX
-      mouse.y = e.clientY
-      if (isTouch.value) showCursor()
-    })
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX
+        mouse.y = e.clientY
+      })
 
-    window.addEventListener('mousedown', () => {
-      if (isTouch.value) showCursor()
-    })
-
-    window.addEventListener('mouseup', () => {
-      if (isTouch.value) hideCursor()
-    })
-
-    window.addEventListener('touchstart', (e) => {
-      mouse.x = e.touches[0].clientX
-      mouse.y = e.touches[0].clientY
-      setX(mouse.x)
-      setY(mouse.y)
-      showCursor()
-    }, { passive: true })
-
-    window.addEventListener('touchend', () => {
-      if (isTouch.value) hideCursor()
-    }, { passive: true })
-
-    // High-frequency loop for buttery smooth movement
-    const tickCursor = () => {
-      setX(mouse.x)
-      setY(mouse.y)
+      // High-frequency loop for buttery smooth movement
+      const tickCursor = () => {
+        setX(mouse.x)
+        setY(mouse.y)
+        requestAnimationFrame(tickCursor)
+      }
       requestAnimationFrame(tickCursor)
+
+      // Hover Scaling (Delegated for dynamic content)
+      const handlePointerEnter = () => gsap.to(cursor, { scale: 1.8, backgroundColor: 'rgba(116, 245, 255, 0.1)', duration: 0.2 })
+      const handlePointerLeave = () => gsap.to(cursor, { scale: 1, backgroundColor: 'transparent', duration: 0.2 })
+
+      window.addEventListener('mouseover', (e) => {
+        const target = e.target.closest('button, a, .cursor-pointer, .disable-custom-cursor')
+        if (!target) return
+        if (target.classList.contains('disable-custom-cursor')) {
+          gsap.to(cursor, { opacity: 0, duration: 0.2 })
+        } else {
+          handlePointerEnter()
+        }
+      })
+
+      window.addEventListener('mouseout', (e) => {
+        const target = e.target.closest('button, a, .cursor-pointer, .disable-custom-cursor')
+        if (!target) return
+        if (target.classList.contains('disable-custom-cursor')) {
+          showCursor()
+        } else {
+          handlePointerLeave()
+        }
+      })
     }
-    requestAnimationFrame(tickCursor)
-
-    // Hover Scaling (Delegated for dynamic content)
-    const handlePointerEnter = () => gsap.to(cursor, { scale: 1.8, backgroundColor: 'rgba(116, 245, 255, 0.1)', duration: 0.2 })
-    const handlePointerLeave = () => gsap.to(cursor, { scale: 1, backgroundColor: 'transparent', duration: 0.2 })
-
-    window.addEventListener('mouseover', (e) => {
-      const target = e.target.closest('button, a, .cursor-pointer, .disable-custom-cursor')
-      if (!target) return
-      if (target.classList.contains('disable-custom-cursor')) {
-        gsap.to(cursor, { opacity: 0, duration: 0.2 })
-      } else {
-        handlePointerEnter()
-      }
-    })
-
-    window.addEventListener('mouseout', (e) => {
-      const target = e.target.closest('button, a, .cursor-pointer, .disable-custom-cursor')
-      if (!target) return
-      if (target.classList.contains('disable-custom-cursor')) {
-        if (!isTouch.value) showCursor()
-      } else {
-        handlePointerLeave()
-      }
-    })
   }
 
   gsap.registerPlugin(ScrollTrigger)
@@ -149,13 +145,6 @@ onMounted(() => {
 
     ctx.clearRect(0, 0, width, height)
 
-    // PERFORMANCE: Only calculate complex physics/repulsion on desktop
-    let obstacles = []
-    if (!isTouch.value) {
-      obstacles = Array.from(document.querySelectorAll('.hero__content, .about__card, .cyber-box'))
-        .map(el => el.getBoundingClientRect())
-    }
-
     // Update dot positions and interaction
     for (const dot of dots) {
       if (!isTouch.value) {
@@ -174,49 +163,6 @@ onMounted(() => {
           dot.vx += (dot.baseVx - dot.vx) * 0.03
           dot.vy += (dot.baseVy - dot.vy) * 0.03
           dot.excitement *= 0.98
-        }
-
-        // BOUNDARY INTERACTION: Glow on proximity + Move Away + Hard bounce at edge
-        for (const rect of obstacles) {
-          const closestX = Math.max(rect.left, Math.min(dot.x, rect.right))
-          const closestY = Math.max(rect.top, Math.min(dot.y, rect.bottom))
-
-          const rDx = dot.x - closestX
-          const rDy = dot.y - closestY
-          const rDist = Math.sqrt(rDx * rDx + rDy * rDy)
-          const rProximityRange = 20
-
-          // PUSHBACK & GLOW: Only on Desktop/4K (width > 1024)
-          if (width > 1024 && rDist < rProximityRange) {
-            const force = (1 - rDist / rProximityRange) * 0.5
-            if (rDist > 0) {
-              dot.vx += (rDx / rDist) * force
-              dot.vy += (rDy / rDist) * force
-            }
-            dot.excitement = Math.min(dot.excitement + 0.05, 1.0)
-          }
-
-          // Hard Bounce: Always active to prevent stars from hiding behind boxes
-          if (dot.x > rect.left && dot.x < rect.right && dot.y > rect.top && dot.y < rect.bottom) {
-            const distL = Math.abs(dot.x - rect.left)
-            const distR = Math.abs(dot.x - rect.right)
-            const distT = Math.abs(dot.y - rect.top)
-            const distB = Math.abs(dot.y - rect.bottom)
-            const minDist = Math.min(distL, distR, distT, distB)
-            if (minDist === distL) {
-              dot.x = rect.left
-              dot.vx = -Math.abs(dot.vx)
-            } else if (minDist === distR) {
-              dot.x = rect.right
-              dot.vx = Math.abs(dot.vx)
-            } else if (minDist === distT) {
-              dot.y = rect.top
-              dot.vy = -Math.abs(dot.vy)
-            } else if (minDist === distB) {
-              dot.y = rect.bottom
-              dot.vy = Math.abs(dot.vy)
-            }
-          }
         }
       }
 
@@ -312,6 +258,7 @@ onMounted(() => {
       :class="{ 'custom-cursor-active': !isTouch }"
     >
       <div
+        v-if="!isTouch"
         ref="cursorRef"
         class="custom-cursor"
       />
@@ -331,12 +278,18 @@ onMounted(() => {
   cursor: none !important;
 }
 
+/* Explicitly keep native cursor hidden during carousel dragging when custom cursor is active */
+.custom-cursor-active .carousel--dragging,
+.custom-cursor-active .carousel--dragging * {
+  cursor: none !important;
+}
+
 .custom-cursor {
   position: fixed;
   top: 0;
   left: 0;
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999999;
@@ -345,38 +298,81 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(116, 245, 255, 0.2);
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 12px rgba(116, 245, 255, 0.35);
   opacity: 0;
-}
-
-.custom-cursor::before {
-  content: '';
-  position: absolute;
-  inset: -150%;
-  background: conic-gradient(
-    from 0deg,
-    var(--accent) 0%,
-    var(--accent-strong) 25%,
-    var(--accent) 50%,
-    var(--accent-strong) 75%,
-    var(--accent) 100%
-  );
-  animation: border-chase 4s linear infinite;
-  border-radius: 50%;
+  /* Long-duration, premium ease-out bezier curve for organic visual weight transitions */
+  transition: 
+    opacity 0.3s ease, 
+    border-color 0.45s cubic-bezier(0.25, 1, 0.2, 1), 
+    box-shadow 0.45s cubic-bezier(0.25, 1, 0.2, 1), 
+    width 0.45s cubic-bezier(0.25, 1, 0.2, 1), 
+    height 0.45s cubic-bezier(0.25, 1, 0.2, 1), 
+    border-radius 0.45s cubic-bezier(0.25, 1, 0.2, 1), 
+    background-color 0.45s cubic-bezier(0.25, 1, 0.2, 1);
 }
 
 .custom-cursor::after {
   content: '';
-  position: absolute;
-  inset: 2px;
-  background: #000;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
   border-radius: 50%;
+  position: absolute;
+  transition: all 0.45s cubic-bezier(0.25, 1, 0.2, 1);
 }
 
-@keyframes border-chase {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Custom Cursor Hovering Carousel */
+body.carousel-is-hovered .custom-cursor {
+  width: 32px;
+  height: 32px;
+  border: 1.5px dashed var(--accent);
+  box-shadow: 0 0 16px rgba(116, 245, 255, 0.4);
+  background: rgba(116, 245, 255, 0.05);
+}
+
+body.carousel-is-hovered .custom-cursor::after {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* Custom Cursor Dragging Carousel */
+body.carousel-is-dragging .custom-cursor {
+  width: 42px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid #6e3dff; /* Cyber violet */
+  box-shadow: 0 0 18px rgba(110, 61, 255, 0.6);
+  background: rgba(110, 61, 255, 0.15);
+  animation: cyber-pulse 1.5s infinite alternate;
+}
+
+body.carousel-is-dragging .custom-cursor::after {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* Prevent any text selection or drag highlights across the entire page during dragging */
+body.carousel-is-dragging,
+body.carousel-is-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+@keyframes cyber-pulse {
+  0% {
+    border-color: #6e3dff;
+    box-shadow: 0 0 12px rgba(110, 61, 255, 0.4);
+  }
+  100% {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(116, 245, 255, 0.6);
+  }
 }
 
 /* Reset and Base Styles */

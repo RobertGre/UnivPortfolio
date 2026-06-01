@@ -34,16 +34,21 @@ const carouselRef = ref(null)
 const isVisible = ref(false)
 
 const carouselScale = ref(1)
+const isMobile = ref(false)
 
 const updateScale = () => {
   if (typeof window === 'undefined') return
   const width = window.innerWidth
+  isMobile.value = width <= 1024
   if (width > 1024) {
     // Desktop scaling: reduced to 75% of original baseline (0.75 * width / 1440)
     carouselScale.value = (width / 1440) * 0.75
+  } else if (width > 640) {
+    // Tablet scaling
+    carouselScale.value = (width / 800) * 0.95
   } else {
-    // Mobile scaling: remains large
-    carouselScale.value = (width / 800) * 1.1
+    // Mobile scaling: slightly more compact to give breathing room for headers on vertical screens
+    carouselScale.value = (width / 420) * 0.78
   }
 }
 
@@ -115,6 +120,93 @@ const handleTouchEndLocal = (e) => {
   }
 }
 
+// Desktop click-and-drag rotation support
+const isDragging = ref(false)
+const isHovered = ref(false)
+let hasDragged = false
+let mouseStartX = 0
+let mouseStartY = 0
+
+// Watch dragging and hovering states to update body classes for custom cursor morphing
+watch(isDragging, (val) => {
+  if (typeof document !== 'undefined') {
+    if (val) {
+      document.body.classList.add('carousel-is-dragging')
+    } else {
+      document.body.classList.remove('carousel-is-dragging')
+    }
+  }
+})
+
+watch(isHovered, (val) => {
+  if (typeof document !== 'undefined') {
+    if (val) {
+      document.body.classList.add('carousel-is-hovered')
+    } else {
+      document.body.classList.remove('carousel-is-hovered')
+    }
+  }
+})
+
+const handleMouseEnter = () => {
+  isPaused.value = true
+  isHovered.value = true
+}
+
+const handleMouseLeave = () => {
+  isPaused.value = false
+  isHovered.value = false
+}
+
+const handleWindowMouseMove = (e) => {
+  if (!isDragging.value) return
+  const deltaX = Math.abs(mouseStartX - e.clientX)
+  const deltaY = Math.abs(mouseStartY - e.clientY)
+  
+  // Mark as drag if mouse moves beyond a 10px threshold
+  if (deltaX > 10 || deltaY > 10) {
+    hasDragged = true
+  }
+}
+
+const handleWindowMouseUp = (e) => {
+  if (isDragging.value) {
+    isDragging.value = false
+    
+    const deltaX = mouseStartX - e.clientX
+    const deltaY = Math.abs(mouseStartY - e.clientY)
+
+    // Trigger rotation if drag is horizontal
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > deltaY) {
+      if (deltaX > 0) {
+        nextRotation()
+      } else {
+        prevRotation()
+      }
+    }
+    
+    // Clear hasDragged after a small timeout so the click event can process it first
+    setTimeout(() => {
+      hasDragged = false
+    }, 50)
+  }
+  
+  window.removeEventListener('mousemove', handleWindowMouseMove)
+  window.removeEventListener('mouseup', handleWindowMouseUp)
+}
+
+const handleMouseDownLocal = (e) => {
+  if (e.button !== 0) return // Only handle left click drags
+  
+  isDragging.value = true
+  hasDragged = false
+  mouseStartX = e.clientX
+  mouseStartY = e.clientY
+
+  window.addEventListener('mousemove', handleWindowMouseMove)
+  window.addEventListener('mouseup', handleWindowMouseUp)
+}
+
 // Close modal on scroll
 const handleGlobalScroll = (e) => {
   if (isModalOpen.value) {
@@ -159,6 +251,12 @@ onUnmounted(() => {
   window.removeEventListener('touchmove', handleGlobalScroll, { capture: true })
   window.removeEventListener('focus', handleFocus)
   window.removeEventListener('blur', handleBlur)
+  window.removeEventListener('mousemove', handleWindowMouseMove)
+  window.removeEventListener('mouseup', handleWindowMouseUp)
+  if (typeof document !== 'undefined') {
+    document.body.classList.remove('carousel-is-dragging')
+    document.body.classList.remove('carousel-is-hovered')
+  }
 })
 
 // 3D Math for Bent Cylinder
@@ -201,13 +299,26 @@ const getItemStyle = (index) => {
     scale = 0.9
   }
 
-  // Visual falloff
-  const brightness = Math.max(1.1 - absVisualAngle / 150, 0.3)
-  const opacity = Math.max(1.2 - absVisualAngle / 150, 0.5)
+  // Layer-based depth falloff (Active middle = Layer 0, Neighbors = Layer 1, Further = Layer 2+)
+  const layer = Math.abs(relIndex)
+
+  let opacity = 1.0
+  let brightness = 1.0
+
+  if (layer === 0) {
+    opacity = 1.0
+    brightness = 1.0
+  } else if (layer === 1) {
+    opacity = isMobile.value ? 0.60 : 0.70 // Increased visibility for closest neighbors
+    brightness = isMobile.value ? 0.70 : 0.80
+  } else {
+    opacity = isMobile.value ? 0.22 : 0.30 // Increased visibility for furthest cards
+    brightness = isMobile.value ? 0.45 : 0.50
+  }
 
   return {
     transform: `rotateY(${visualRelAngle}deg) translateZ(${radius.value}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scale})`,
-    filter: absVisualAngle > 1 ? `brightness(${brightness})` : 'none',
+    filter: layer > 0 ? `brightness(${brightness})` : 'none',
     opacity: opacity,
     zIndex: Math.round(1000 - absVisualAngle),
     transition: 'transform 0.8s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.4s ease, filter 0.4s ease',
@@ -245,6 +356,10 @@ const ringStyle = computed(() => {
 })
 
 const handleCardClick = (index) => {
+  if (hasDragged) {
+    hasDragged = false // Suppress click action after a drag completes
+    return
+  }
   if (index === currentIndex.value) {
     selectedProject.value = props.items[index]
     isModalOpen.value = true
@@ -284,13 +399,13 @@ defineExpose({
     :id="id"
     ref="carouselRef"
     class="projects section touch-y"
-    @mouseenter="isPaused = true"
-    @mouseleave="isPaused = false"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
   >
     <Transition name="fade-fast">
       <div
         v-if="!isModalOpen"
-        class="section__header absolute top-[2rem] inset-x-0 flex flex-col items-center justify-center z-10 pointer-events-none"
+        class="section__header absolute top-[1.2rem] sm:top-[2rem] inset-x-0 flex flex-col items-center justify-center z-10 pointer-events-none"
       >
         <div class="cyber-box px-8 py-3">
           <p class="section__label !mb-0 font-black">
@@ -304,9 +419,12 @@ defineExpose({
       <!-- 3D Carousel -->
       <div
         class="carousel"
+        :class="{ 'carousel--dragging': isDragging }"
         :aria-label="`${title} carousel`"
         @touchstart="handleTouchStartLocal"
         @touchend="handleTouchEndLocal"
+        @mousedown="handleMouseDownLocal"
+        @dragstart.prevent
       >
         <div
           class="carousel-scaler"
@@ -322,6 +440,14 @@ defineExpose({
                 class="counter-dot"
                 :class="{ active: i === currentIndex }"
               />
+            </div>
+
+            <!-- Mobile Gesture Affordance Tag -->
+            <div class="carousel__gesture-tag lg:hidden flex items-center justify-center absolute left-1/2 -translate-x-1/2 z-[1001] pointer-events-none w-max">
+              <span class="text-[8px] font-black uppercase tracking-[0.25em] text-[var(--accent)] animate-pulse bg-[#0a0f1e]/90 px-3.5 py-2 rounded-xl border border-[var(--accent)]/25 shadow-[0_0_20px_rgba(116,245,255,0.15)] flex items-center gap-1.5">
+                <UIcon name="i-lucide-move-3d" class="text-xs" />
+                Swipe or Tap Sides to Spin
+              </span>
             </div>
 
             <div
@@ -374,11 +500,16 @@ defineExpose({
           <!-- Navigation Overlays moved outside 3D viewport to ensure they stay on top -->
           <div class="carousel__nav-overlay">
             <div
-              class="nav-zone nav-zone--side"
+              class="nav-zone nav-zone--side flex items-center justify-start px-4"
               @click.stop="prevRotation"
               @mouseenter="hoveredZone = -1"
               @mouseleave="hoveredZone = null"
-            />
+            >
+              <!-- Glowing Tactical Bracket on Mobile -->
+              <div class="carousel-mobile-bracket lg:hidden text-[rgba(116,245,255,0.35)] text-3xl font-extralight tracking-tighter select-none pointer-events-none animate-pulse">
+                [
+              </div>
+            </div>
             <div
               class="nav-zone nav-zone--center"
               @click.stop="handleCardClick(currentIndex)"
@@ -386,11 +517,16 @@ defineExpose({
               @mouseleave="hoveredZone = null"
             />
             <div
-              class="nav-zone nav-zone--side"
+              class="nav-zone nav-zone--side flex items-center justify-end px-4"
               @click.stop="nextRotation"
               @mouseenter="hoveredZone = 1"
               @mouseleave="hoveredZone = null"
-            />
+            >
+              <!-- Glowing Tactical Bracket on Mobile -->
+              <div class="carousel-mobile-bracket lg:hidden text-[rgba(116,245,255,0.35)] text-3xl font-extralight tracking-tighter select-none pointer-events-none animate-pulse">
+                ]
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -450,6 +586,18 @@ defineExpose({
   justify-content: center;
   perspective: 4500px;
   overflow: visible !important;
+  cursor: grab;
+  user-select: none;
+}
+
+html:not(.custom-cursor-active) .carousel--dragging,
+html:not(.custom-cursor-active) .carousel--dragging * {
+  cursor: grabbing !important;
+}
+
+.carousel--dragging,
+.carousel--dragging * {
+  user-select: none !important;
 }
 
 .carousel__viewport {
@@ -482,13 +630,35 @@ defineExpose({
   pointer-events: none;
 }
 
+@media (max-width: 1024px) {
+  .carousel__nav-overlay {
+    width: 100vw;
+    height: 100%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(calc(1 / var(--carousel-scale, 0.8))); /* Revert parent scale on touch screens */
+  }
+}
+
 .nav-zone {
   pointer-events: auto;
   cursor: pointer;
 }
 
+@media (max-width: 1024px) {
+  .nav-zone {
+    pointer-events: none !important;
+  }
+}
+
 .nav-zone--side {
   width: 300px;
+}
+
+@media (max-width: 1024px) {
+  .nav-zone--side {
+    width: 25% !important;
+  }
 }
 
 .nav-zone--center {
@@ -553,6 +723,19 @@ defineExpose({
   z-index: 1001;
 }
 
+.carousel__gesture-tag {
+  top: calc(50% + 410px);
+}
+
+@media (max-width: 768px) {
+  .carousel__counter {
+    top: calc(50% + 300px) !important;
+  }
+  .carousel__gesture-tag {
+    top: calc(50% + 330px) !important;
+  }
+}
+
 .counter-dot {
   width: 12px;
   height: 3px;
@@ -573,7 +756,7 @@ defineExpose({
   width: 272px;
   height: 384px;
   position: relative;
-  background: transparent;
+  background: #070b19; /* Solid deep tactical cyber-blue backdrop to prevent 3D bleed-through */
   border-radius: 26px;
   transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
   overflow: visible !important;
