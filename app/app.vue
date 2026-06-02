@@ -68,27 +68,31 @@ onMounted(() => {
       requestAnimationFrame(tickCursor)
 
       // Hover Scaling (Delegated for dynamic content)
-      const handlePointerEnter = () => gsap.to(cursor, { scale: 1.8, backgroundColor: 'rgba(116, 245, 255, 0.1)', duration: 0.2 })
-      const handlePointerLeave = () => gsap.to(cursor, { scale: 1, backgroundColor: 'transparent', duration: 0.2 })
+      const handlePointerEnter = () => gsap.to(cursor, { scale: 1.8, backgroundColor: 'rgba(0, 102, 255, 0.1)', duration: 0.2, overwrite: true })
+      const handlePointerLeave = () => gsap.to(cursor, { scale: 1, backgroundColor: 'transparent', duration: 0.2, overwrite: true })
 
-      window.addEventListener('mouseover', (e) => {
-        const target = e.target.closest('button, a, .cursor-pointer, .disable-custom-cursor')
-        if (!target) return
-        if (target.classList.contains('disable-custom-cursor')) {
-          gsap.to(cursor, { opacity: 0, duration: 0.2 })
-        } else {
-          handlePointerEnter()
-        }
-      })
-
-      window.addEventListener('mouseout', (e) => {
-        const target = e.target.closest('button, a, .cursor-pointer, .disable-custom-cursor')
-        if (!target) return
-        if (target.classList.contains('disable-custom-cursor')) {
-          showCursor()
+      const updateCursorState = (e) => {
+        const target = e.target.closest?.('button, a, .cursor-pointer, .disable-custom-cursor')
+        
+        if (target) {
+          if (target.classList.contains('disable-custom-cursor')) {
+            gsap.to(cursor, { opacity: 0, duration: 0.2, overwrite: true })
+          } else {
+            handlePointerEnter()
+            showCursor()
+          }
         } else {
           handlePointerLeave()
+          showCursor()
         }
+      }
+
+      window.addEventListener('mouseover', updateCursorState)
+
+      // Reset state on modal change to prevent stuck hover states
+      watch(isModalActive, () => {
+        handlePointerLeave()
+        showCursor()
       })
     }
   }
@@ -218,14 +222,14 @@ onMounted(() => {
       if (dot.excitement > 0.6) {
         // Blending to Purple: #6e3dff (110, 61, 255)
         const t = (dot.excitement - 0.6) * 2.5
-        r = Math.round(116 + (110 - 116) * t) // Transitioning from cyan point
-        g = Math.round(245 + (61 - 245) * t)
+        r = Math.round(0 + (110 - 0) * t) // Transitioning from blue point
+        g = Math.round(102 + (61 - 102) * t)
         b = 255
       } else if (dot.excitement > 0.1) {
-        // Blending to Cyan: #74f5ff (116, 245, 255)
+        // Blending to Blue: #0066ff (0, 102, 255)
         const t = (dot.excitement - 0.1) * 2
-        r = Math.round(255 + (116 - 255) * t)
-        g = Math.round(255 + (245 - 255) * t)
+        r = Math.round(255 + (0 - 255) * t)
+        g = Math.round(255 + (102 - 255) * t)
         b = 255
       }
 
@@ -299,7 +303,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   border: 1.5px solid var(--accent);
-  box-shadow: 0 0 12px rgba(116, 245, 255, 0.35);
+  box-shadow: 0 0 12px rgba(0, 102, 255, 0.35);
   opacity: 0;
   /* Long-duration, premium ease-out bezier curve for organic visual weight transitions */
   transition: 
@@ -327,8 +331,8 @@ body.carousel-is-hovered .custom-cursor {
   width: 32px;
   height: 32px;
   border: 1.5px dashed var(--accent);
-  box-shadow: 0 0 16px rgba(116, 245, 255, 0.4);
-  background: rgba(116, 245, 255, 0.05);
+  box-shadow: 0 0 16px rgba(0, 102, 255, 0.4);
+  background: rgba(0, 102, 255, 0.05);
 }
 
 body.carousel-is-hovered .custom-cursor::after {
@@ -371,7 +375,7 @@ body.carousel-is-dragging * {
   }
   100% {
     border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(116, 245, 255, 0.6);
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.6);
   }
 }
 

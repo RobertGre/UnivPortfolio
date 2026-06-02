@@ -13,12 +13,12 @@
       <!-- Premium CV Button -->
       <div class="hero__actions mt-8 flex justify-center">
         <a
-          href="/Robert_Catalin_Crisan_Resume.pdf"
+          href="Robert_Catalin_Crisan_CV.pdf"
           target="_blank"
           class="hero__cv-btn"
         >
           <UIcon name="i-lucide-file-text" class="w-5 h-5 text-current" />
-          <span>View CV / Resume</span>
+          <span>View CV</span>
         </a>
       </div>
     </div>
@@ -48,7 +48,7 @@
   background: var(--accent);
   border: 1px solid var(--accent-strong);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(116, 245, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 102, 255, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
 }
@@ -58,7 +58,7 @@
   background: var(--accent-strong);
   color: #ffffff;
   border-color: var(--accent);
-  box-shadow: 0 6px 25px rgba(110, 61, 255, 0.5), 0 0 15px rgba(116, 245, 255, 0.3);
+  box-shadow: 0 6px 25px rgba(110, 61, 255, 0.5), 0 0 15px rgba(0, 102, 255, 0.3);
 }
 
 @media (max-width: 620px) {

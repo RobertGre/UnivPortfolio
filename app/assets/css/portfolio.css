@@ -5,10 +5,10 @@
   --surface-strong: rgba(5, 5, 5, 0.98);
   --text: #e8f7ff;
   --muted: #8fa7c3;
-  --accent: #74f5ff;
+  --accent: #0066ff;
   --accent-strong: #6e3dff;
   --border: rgba(118, 226, 255, 0.18);
-  --glow: 0 0 40px rgba(116, 245, 255, 0.15);
+  --glow: 0 0 40px rgba(0, 102, 255, 0.15);
   --nav-width: 60px;
   --nav-scale: 1;
   --nav-gap: 2.5rem;
@@ -97,7 +97,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(116, 245, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
   flex-shrink: 0;
 }
 
@@ -325,7 +325,7 @@ main {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(116, 245, 255, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 102, 255, 0.3), transparent);
   pointer-events: none;
 }
 
@@ -413,7 +413,7 @@ main {
 .hero__content-highlight {
   position: absolute;
   top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(116, 245, 255, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 102, 255, 0.3), transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -463,7 +463,7 @@ main {
 
 .about__card:nth-child(2) {
   /* Secondary highlight via shadow for variety */
-  box-shadow: inset 0 0 15px rgba(116, 245, 255, 0.05);
+  box-shadow: inset 0 0 15px rgba(0, 102, 255, 0.05);
 }
 
 .about__card--accent {

@@ -173,14 +173,14 @@
         </div>
 
         <!-- Premium CV CTA Button -->
-        <div class="mt-6 pt-4 border-t border-[rgba(116,245,255,0.1)] w-full">
+        <div class="mt-6 pt-4 border-t border-[rgba(0, 102, 255,0.1)] w-full">
           <a
-            href="/Robert_Catalin_Crisan_Resume.pdf"
+            href="Robert_Catalin_Crisan_CV.pdf"
             target="_blank"
             class="about__cv-link"
           >
             <UIcon name="i-lucide-file-text" class="text-base text-current" />
-            <span>View CV / Resume</span>
+            <span>View CV</span>
             <UIcon name="i-lucide-external-link" class="text-xs text-current ml-1 opacity-70" />
           </a>
         </div>
@@ -211,9 +211,9 @@
 
 .about__link:hover {
   color: var(--accent);
-  text-shadow: 0 0 8px rgba(116, 245, 255, 0.4);
+  text-shadow: 0 0 8px rgba(0, 102, 255, 0.4);
   transform: translateX(4px);
-  background: rgba(116, 245, 255, 0.08);
+  background: rgba(0, 102, 255, 0.08);
   border-color: var(--accent);
 }
 
@@ -242,14 +242,14 @@
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 15px rgba(116, 245, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 102, 255, 0.2);
 }
 
 .about__cv-link:hover {
   color: #ffffff;
   background: var(--accent-strong);
   border-color: var(--accent);
-  box-shadow: 0 4px 15px rgba(110, 61, 255, 0.4), 0 0 10px rgba(116, 245, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(110, 61, 255, 0.4), 0 0 10px rgba(0, 102, 255, 0.3);
   transform: translateY(-1px);
 }
 
@@ -290,7 +290,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 1px solid rgba(116, 245, 255, 0.15);
+  border-bottom: 1px solid rgba(0, 102, 255, 0.15);
   padding-bottom: 0.6rem;
   margin-bottom: 0.4rem;
   min-height: 2.5rem;
@@ -312,7 +312,7 @@
   gap: 0.75rem;
   padding: 0.5rem 0.85rem;
   background: rgba(12, 12, 15, 0.6);
-  border: 1px solid rgba(116, 245, 255, 0.08);
+  border: 1px solid rgba(0, 102, 255, 0.08);
   border-radius: 8px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
@@ -332,9 +332,9 @@
 
 .skill-badge:hover {
   transform: translateX(4px);
-  background: rgba(116, 245, 255, 0.06);
-  border-color: rgba(116, 245, 255, 0.35);
-  box-shadow: 0 4px 15px rgba(116, 245, 255, 0.08);
+  background: rgba(0, 102, 255, 0.06);
+  border-color: rgba(0, 102, 255, 0.35);
+  box-shadow: 0 4px 15px rgba(0, 102, 255, 0.08);
 }
 
 .skill-badge:hover::before {

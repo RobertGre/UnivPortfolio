@@ -157,8 +157,8 @@ const getSectionShortLabel = (label) => {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), 
-              0 0 25px rgba(116, 245, 255, 0.08), 
-              inset 0 0 10px rgba(116, 245, 255, 0.04);
+              0 0 25px rgba(0, 102, 255, 0.08), 
+              inset 0 0 10px rgba(0, 102, 255, 0.04);
   align-items: center;
   justify-content: space-around;
   gap: 16px;
@@ -196,9 +196,9 @@ const getSectionShortLabel = (label) => {
 }
 
 .mobile-nav-item--active {
-  background: rgba(116, 245, 255, 0.06);
-  box-shadow: inset 0 0 8px rgba(116, 245, 255, 0.1),
-              0 0 10px rgba(116, 245, 255, 0.02);
+  background: rgba(0, 102, 255, 0.06);
+  box-shadow: inset 0 0 8px rgba(0, 102, 255, 0.1),
+              0 0 10px rgba(0, 102, 255, 0.02);
 }
 
 .mobile-nav-dot {
@@ -228,7 +228,7 @@ const getSectionShortLabel = (label) => {
 .mobile-nav-item--active .mobile-nav-icon {
   color: var(--accent);
   transform: scale(1.1) translateY(-1px);
-  filter: drop-shadow(0 0 8px rgba(116, 245, 255, 0.8));
+  filter: drop-shadow(0 0 8px rgba(0, 102, 255, 0.8));
 }
 
 .mobile-nav-label {

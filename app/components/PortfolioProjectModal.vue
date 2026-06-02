@@ -25,6 +25,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'close', 'next', 'prev'])
 
 const closeModal = () => {
+  isVideoActive.value = false
   emit('update:modelValue', false)
   emit('close')
 }
@@ -222,7 +223,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Content "Screen" -->
-      <div class="relative w-full max-w-[95vw] sm:max-w-[90vw] 2xl:max-w-[80vw] 3xl:max-w-[70vw] h-full bg-[#0a0f1e] rounded-2xl sm:rounded-3xl ring-1 ring-[rgba(116,245,255,0.2)] shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col z-[2000001]">
+      <div class="relative w-full max-w-[95vw] sm:max-w-[90vw] 2xl:max-w-[80vw] 3xl:max-w-[70vw] h-full bg-[#0a0f1e] rounded-2xl sm:rounded-3xl ring-1 ring-[rgba(0,102,255,0.2)] shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col z-[2000001]">
         <div class="project-modal py-4 px-4 sm:py-6 sm:px-8 md:p-10 text-[#e8f7ff] h-full flex flex-col">
           <header class="flex justify-between items-start mb-4 py-2 flex-shrink-0 gap-4">
             <div>
@@ -374,7 +375,7 @@ onUnmounted(() => {
                 <!-- ROW 2: ARCHITECTURAL CASE STUDY SECTION (Full Width, Under Video & Texts) -->
                 <div 
                   v-if="displayProject.challenge || displayProject.architecture || displayProject.tradeoff"
-                  class="case-study-box p-4 sm:p-6 rounded-2xl border border-[rgba(116,245,255,0.12)] bg-white/5 relative overflow-hidden"
+                  class="case-study-box p-4 sm:p-6 rounded-2xl border border-[rgba(0,102,255,0.12)] bg-white/5 relative overflow-hidden"
                 >
                   <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-orange-500 via-[var(--accent)] to-emerald-500" />
                   
@@ -426,7 +427,7 @@ onUnmounted(() => {
                 >
                   <!-- Toggle Banner Button -->
                   <button
-                    class="w-full flex items-center justify-between p-4 rounded-xl border border-[rgba(116,245,255,0.15)] bg-gradient-to-r from-black/50 via-[#0a0f1e]/80 to-black/50 hover:from-[var(--accent)]/10 hover:to-[var(--accent)]/5 hover:border-[var(--accent)]/30 transition-all duration-300 group shadow-[0_4px_20px_rgba(0,0,0,0.3)] cursor-pointer"
+                    class="w-full flex items-center justify-between p-4 rounded-xl border border-[rgba(0,102,255,0.15)] bg-gradient-to-r from-black/50 via-[#0a0f1e]/80 to-black/50 hover:from-[var(--accent)]/10 hover:to-[var(--accent)]/5 hover:border-[var(--accent)]/30 transition-all duration-300 group shadow-[0_4px_20px_rgba(0,0,0,0.3)] cursor-pointer"
                     @click="isExpanded = !isExpanded"
                   >
                     <div class="flex items-center gap-3 min-w-0">
@@ -469,10 +470,10 @@ onUnmounted(() => {
                   <Transition name="slide-fade">
                     <div
                       v-if="isExpanded"
-                      class="code-editor-box mt-4 rounded-xl border border-[rgba(116,245,255,0.12)] bg-black/40 relative overflow-hidden"
+                      class="code-editor-box mt-4 rounded-xl border border-[rgba(0,102,255,0.12)] bg-black/40 relative overflow-hidden"
                     >
                       <!-- Visual Editor Header -->
-                      <div class="code-editor-header flex justify-between items-center px-4 py-3 bg-[#0a0f1e]/80 border-b border-[rgba(116,245,255,0.1)]">
+                      <div class="code-editor-header flex justify-between items-center px-4 py-3 bg-[#0a0f1e]/80 border-b border-[rgba(0,102,255,0.1)]">
                         <div class="flex items-center gap-2">
                           <!-- Mac dots -->
                           <div class="flex gap-1.5 mr-2">
@@ -503,7 +504,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- ROW 3: BOTTOM SECTION: Skills & Execution (Full Width) -->
-                <div class="clear-both grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8 border-t border-[rgba(116,245,255,0.08)]">
+                <div class="clear-both grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8 border-t border-[rgba(0,102,255,0.08)]">
                     <!-- Standard Skills Column (Hidden for Minigames/GameJams as it is now above) -->
                     <section
                       v-if="!displayProject.isMinigame && !displayProject.isGameJam"
@@ -571,7 +572,7 @@ onUnmounted(() => {
               </div>
 
             <!-- Fixed Bottom Bar - Positioned as page footer -->
-            <div class="mt-4 pt-4 border-t border-[rgba(116,245,255,0.08)] flex-shrink-0">
+            <div class="mt-4 pt-4 border-t border-[rgba(0,102,255,0.08)] flex-shrink-0">
               <div class="flex flex-wrap justify-between items-center gap-4">
                 <div
                   v-if="!displayProject.hideLinks"
@@ -704,7 +705,7 @@ onUnmounted(() => {
 }
 
 .code-editor-box:hover {
-  border-color: rgba(116, 245, 255, 0.25);
+  border-color: rgba(0, 102, 255, 0.25);
 }
 
 .code-editor-header {
@@ -771,7 +772,7 @@ onUnmounted(() => {
 }
 
 :deep(.code-keyword) {
-  color: #74f5ff;
+  color: #0066ff;
   font-weight: bold;
 }
 

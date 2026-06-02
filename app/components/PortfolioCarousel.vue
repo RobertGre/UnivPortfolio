@@ -64,6 +64,15 @@ const activeHoverIndex = computed(() => {
   return ((targetRotation % len) + len) % len
 })
 
+const getRelIndex = (index) => {
+  const count = props.items.length
+  let relIndex = index - rotationIndex.value
+  const half = count / 2
+  while (relIndex > half) relIndex -= count
+  while (relIndex <= -half) relIndex += count
+  return relIndex
+}
+
 const goToRotation = (offset) => {
   rotationIndex.value += offset
 }
@@ -301,6 +310,9 @@ const getItemStyle = (index) => {
 
   // Layer-based depth falloff (Active middle = Layer 0, Neighbors = Layer 1, Further = Layer 2+)
   const layer = Math.abs(relIndex)
+  
+  // Add an extra depth offset to the active card and its neighbors to prevent clipping
+  const depthOffset = layer === 0 ? 50 : (layer === 1 ? 20 : 0)
 
   let opacity = 1.0
   let brightness = 1.0
@@ -317,10 +329,10 @@ const getItemStyle = (index) => {
   }
 
   return {
-    transform: `rotateY(${visualRelAngle}deg) translateZ(${radius.value}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scale})`,
+    transform: `rotateY(${visualRelAngle}deg) translateZ(${radius.value + depthOffset}px) rotateY(${angleCorrection}deg) skewY(${skewY}deg) scale(${scale})`,
     filter: layer > 0 ? `brightness(${brightness})` : 'none',
     opacity: opacity,
-    zIndex: Math.round(1000 - absVisualAngle),
+    zIndex: Math.round(2000 - (absVisualAngle * 10)),
     transition: 'transform 0.8s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.4s ease, filter 0.4s ease',
     willChange: 'transform, opacity'
   }
@@ -444,7 +456,7 @@ defineExpose({
 
             <!-- Mobile Gesture Affordance Tag -->
             <div class="carousel__gesture-tag lg:hidden flex items-center justify-center absolute left-1/2 -translate-x-1/2 z-[1001] pointer-events-none w-max">
-              <span class="text-[8px] font-black uppercase tracking-[0.25em] text-[var(--accent)] animate-pulse bg-[#0a0f1e]/90 px-3.5 py-2 rounded-xl border border-[var(--accent)]/25 shadow-[0_0_20px_rgba(116,245,255,0.15)] flex items-center gap-1.5">
+              <span class="text-[8px] font-black uppercase tracking-[0.25em] text-[var(--accent)] animate-pulse bg-[#0a0f1e]/90 px-3.5 py-2 rounded-xl border border-[var(--accent)]/25 shadow-[0_0_20px_rgba(0, 102, 255,0.15)] flex items-center gap-1.5">
                 <UIcon name="i-lucide-move-3d" class="text-xs" />
                 Swipe or Tap Sides to Spin
               </span>
@@ -460,11 +472,15 @@ defineExpose({
                 class="carousel__item-3d"
                 :class="{ 'active': currentIndex === index, 'glow-target': activeHoverIndex === index }"
                 :style="getItemStyle(index)"
-                @click.stop="handleCardClick(index)"
               >
                 <!-- This container is now massive to prevent clipping -->
                 <div class="glow-boundary">
-                  <div class="bent-card cursor-pointer border-none">
+                  <div
+                    class="bent-card cursor-pointer border-none"
+                    @click.stop="handleCardClick(index)"
+                    @mouseenter="hoveredZone = getRelIndex(index)"
+                    @mouseleave="hoveredZone = null"
+                  >
                     <div
                       class="bent-card__shading"
                       :style="getCardShading(index)"
@@ -497,35 +513,13 @@ defineExpose({
             </div>
           </div>
 
-          <!-- Navigation Overlays moved outside 3D viewport to ensure they stay on top -->
-          <div class="carousel__nav-overlay">
-            <div
-              class="nav-zone nav-zone--side flex items-center justify-start px-4"
-              @click.stop="prevRotation"
-              @mouseenter="hoveredZone = -1"
-              @mouseleave="hoveredZone = null"
-            >
-              <!-- Glowing Tactical Bracket on Mobile -->
-              <div class="carousel-mobile-bracket lg:hidden text-[rgba(116,245,255,0.35)] text-3xl font-extralight tracking-tighter select-none pointer-events-none animate-pulse">
-                [
-              </div>
+          <!-- Mobile Navigation Affordance (Brackets) -->
+          <div class="carousel__mobile-brackets lg:hidden pointer-events-none">
+            <div class="carousel-mobile-bracket absolute left-4 top-1/2 -translate-y-1/2 text-[rgba(0, 102, 255,0.35)] text-3xl font-extralight tracking-tighter animate-pulse">
+              [
             </div>
-            <div
-              class="nav-zone nav-zone--center"
-              @click.stop="handleCardClick(currentIndex)"
-              @mouseenter="hoveredZone = 0"
-              @mouseleave="hoveredZone = null"
-            />
-            <div
-              class="nav-zone nav-zone--side flex items-center justify-end px-4"
-              @click.stop="nextRotation"
-              @mouseenter="hoveredZone = 1"
-              @mouseleave="hoveredZone = null"
-            >
-              <!-- Glowing Tactical Bracket on Mobile -->
-              <div class="carousel-mobile-bracket lg:hidden text-[rgba(116,245,255,0.35)] text-3xl font-extralight tracking-tighter select-none pointer-events-none animate-pulse">
-                ]
-              </div>
+            <div class="carousel-mobile-bracket absolute right-4 top-1/2 -translate-y-1/2 text-[rgba(0, 102, 255,0.35)] text-3xl font-extralight tracking-tighter animate-pulse">
+              ]
             </div>
           </div>
         </div>
@@ -612,57 +606,10 @@ html:not(.custom-cursor-active) .carousel--dragging * {
 .sphere-glow {
   position: absolute;
   inset: -300px -600px;
-  background: radial-gradient(circle at center, rgba(116, 245, 255, 0.08) 0%, transparent 60%);
+  background: radial-gradient(circle at center, rgba(0, 102, 255, 0.08) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
   transform: translateZ(-600px);
-}
-
-.carousel__nav-overlay {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 1200px;
-  height: 800px;
-  display: flex;
-  z-index: 2000;
-  pointer-events: none;
-}
-
-@media (max-width: 1024px) {
-  .carousel__nav-overlay {
-    width: 100vw;
-    height: 100%;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%) scale(calc(1 / var(--carousel-scale, 0.8))); /* Revert parent scale on touch screens */
-  }
-}
-
-.nav-zone {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-@media (max-width: 1024px) {
-  .nav-zone {
-    pointer-events: none !important;
-  }
-}
-
-.nav-zone--side {
-  width: 300px;
-}
-
-@media (max-width: 1024px) {
-  .nav-zone--side {
-    width: 25% !important;
-  }
-}
-
-.nav-zone--center {
-  flex: 1;
 }
 
 .carousel__ring {
@@ -681,7 +628,7 @@ html:not(.custom-cursor-active) .carousel--dragging * {
   top: 50%;
   transform-origin: center center;
   backface-visibility: hidden;
-  pointer-events: auto;
+  pointer-events: none; /* Allow clicks to pass through the 400x560 boundary */
   overflow: visible !important;
   margin-left: -200px;
   margin-top: -280px;
@@ -739,7 +686,7 @@ html:not(.custom-cursor-active) .carousel--dragging * {
 .counter-dot {
   width: 12px;
   height: 3px;
-  background: rgba(116, 245, 255, 0.1);
+  background: rgba(0, 102, 255, 0.1);
   transition: all 0.5s ease;
   border-radius: 1px;
 }
@@ -765,16 +712,17 @@ html:not(.custom-cursor-active) .carousel--dragging * {
   outline: none !important;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: auto; /* Re-enable events strictly for the card surface */
 }
 
 .glow-target .bent-card {
-  box-shadow: 0 0 25px rgba(116, 245, 255, 0.25), 0 0 60px rgba(110, 61, 255, 0.1);
-  border-color: rgba(116, 245, 255, 0.35);
+  box-shadow: 0 0 25px rgba(0, 102, 255, 0.25), 0 0 60px rgba(110, 61, 255, 0.1);
+  border-color: rgba(0, 102, 255, 0.35);
 }
 
 .active.glow-target .bent-card {
   border-color: var(--accent);
-  box-shadow: 0 0 35px rgba(116, 245, 255, 0.35), 0 0 80px rgba(110, 61, 255, 0.15);
+  box-shadow: 0 0 35px rgba(0, 102, 255, 0.35), 0 0 80px rgba(110, 61, 255, 0.15);
 }
 
 .bent-card__shading {
@@ -845,6 +793,7 @@ html:not(.custom-cursor-active) .carousel--dragging * {
   letter-spacing: 0.3em;
   opacity: 0.8;
   animation: pulse 2s infinite;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1);
 }
 
 @keyframes pulse {

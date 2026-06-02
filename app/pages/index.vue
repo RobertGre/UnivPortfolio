@@ -96,187 +96,156 @@ const techProjects = [
     architecture: 'Engineered decentralized Unity agent AI utilizing custom Finite State Machines (FSMs) and sensory raycasting. Implemented A* rerouting triggered on-demand via peer-to-peer "Information Cascades" upon local hazard detection, bypassing constant path recalculation.',
     tradeoff: 'On-demand path recalculation reduced CPU pathfinding overhead by 68%, resolving frame spikes. Adaptive perception-driven AI achieved a 100% agent survival rate by dynamically bypassing fire blocks, compared to just 42% in static routing layouts.',
     youtube: '2A2KRqsTGFw',
-    codeTitle: 'PassengerSensoryFSM.cs',
+    codeTitle: 'PassengerAI.cs',
     codeLanguage: 'csharp',
     codeSnippet: `using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.AI;
 
-/// <summary>
-/// Autonomous Airport Passenger Agent FSM featuring perception-driven path rerouting,
-/// cognitive panic delays, and peer-to-peer hazard info cascades during emergency evacuations.
-/// Developed for University Thesis: "Adaptive Crowd Evacuation Simulation under Fire Hazards".
-/// </summary>
-[RequireComponent(typeof(NavMeshAgent))]
-public class PassengerSensoryFSM : MonoBehaviour
+public class PassangerAI : MonoBehaviour
 {
-    public enum AgentState { NavigatingToCheckpoint, EmergencyPanic, FleeingToSafety, Incapacitated }
+    public float detectionRadius = 30f;
+    public float visionAngle = 90f;
+    public LayerMask obstacleLayer;
+    public float communicationRadius = 10f;
     
-    [Header("Agent Attributes")]
-    [SerializeField] private AgentState currentState = AgentState.NavigatingToCheckpoint;
-    [SerializeField] private float sensoryRadius = 12.0f;
-    [SerializeField] private float fieldOfViewAngle = 110.0f;
-    [SerializeField] private LayerMask hazardLayer;
-    [SerializeField] private LayerMask peerLayer;
-    
-    [Header("Psychological Panic Settings")]
-    [Range(0.5f, 5.0f)] [SerializeField] private float cognitiveReactionDelay = 1.2f;
-    [SerializeField] private float communicationCascadeRadius = 8.0f;
+    private List<Vector3> _knownHazards = new List<Vector3>();
+    private HashSet<Checkpoint> _invalidatedExits = new HashSet<Checkpoint>();
+    private bool _isEvacuating = false;
+    private NavMeshAgent _agent;
 
-    private NavMeshAgent navAgent;
-    private Vector3 currentTargetDestination;
-    private List<Vector3> routeCheckpoints = new List<Vector3>();
-    private int currentCheckpointIndex = 0;
-    private bool isPanicStateTriggered = false;
-    private Vector3 detectedHazardLocation;
+    private static Dictionary<int, List<PassangerAI>> _agentGrid = new Dictionary<int, List<PassangerAI>>();
+    private const float GridCellSize = 5.0f;
+    private int _currentGridKey = -1;
 
-    private void Awake()
+    void Awake() => _agent = GetComponent<NavMeshAgent>();
+
+    void Update()
     {
-        navAgent = GetComponent<NavMeshAgent>();
+        UpdateSpatialGrid();
+        PerformSensoryCheck();
+        CommunicateWithNearbyAgents();
+        
+        if (_isEvacuating) HandleEvacuationLogic();
     }
 
-    private void Start()
+    private void UpdateSpatialGrid()
     {
-        InitializeAirportCheckpointRoute();
+        int newKey = (Mathf.FloorToInt(transform.position.x / GridCellSize) * 1000) + Mathf.FloorToInt(transform.position.z / GridCellSize);
+        if (newKey == _currentGridKey) return;
+
+        if (_currentGridKey != -1 && _agentGrid.ContainsKey(_currentGridKey)) _agentGrid[_currentGridKey].Remove(this);
+        if (!_agentGrid.ContainsKey(newKey)) _agentGrid[newKey] = new List<PassangerAI>();
+        
+        _agentGrid[newKey].Add(this);
+        _currentGridKey = newKey;
     }
 
-    private void Update()
+    private void PerformSensoryCheck()
     {
-        if (currentState == AgentState.Incapacitated) return;
-
-        // Perform sensory scanning for fire hazards on every frame
-        ScanSensoryPerception();
-
-        switch (currentState)
+        foreach (var firePos in FireInstance.AllFirePositions) 
         {
-            case AgentState.NavigatingToCheckpoint:
-                UpdateNormalCheckpointPatrol();
-                break;
-            case AgentState.EmergencyPanic:
-                // Passive delay state simulating human cognitive load and decision friction
-                break;
-            case AgentState.FleeingToSafety:
-                UpdateEvacuationRouting();
-                break;
+            if (CanSeeHazard(firePos) && !_knownHazards.Contains(firePos))
+            {
+                _knownHazards.Add(firePos);
+                InvalidateExitsBehindHazard(firePos);
+                _isEvacuating = true;
+                FindSafestExit();
+            }
         }
     }
 
-    /// <summary>
-    /// Utilizes OverlapSphere and Raycasts to perform localized sensory detection of dynamic fire grids.
-    /// Bypasses continuous global queries to conserve heap allocations.
-    /// </summary>
-    private void ScanSensoryPerception()
+    private void InvalidateExitsBehindHazard(Vector3 hazardPos)
     {
-        if (isPanicStateTriggered) return;
-
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, sensoryRadius, hazardLayer);
-        foreach (var col in hitColliders)
+        // This simulates agents realizing an exit is blocked by fire
+        foreach (var exit in Checkpoint.AllExits)
         {
-            Vector3 directionToHazard = (col.transform.position - transform.position).normalized;
-            float angle = Vector3.Angle(transform.forward, directionToHazard);
+            Vector3 agentToExit = (exit.transform.position - transform.position);
+            Vector3 agentToHazard = (hazardPos - transform.position);
+            
+            if (agentToHazard.magnitude < agentToExit.magnitude * 1.1f) {
+                if (Vector3.Dot(agentToHazard.normalized, agentToExit.normalized) > 0.5f) 
+                    _invalidatedExits.Add(exit);
+            }
+        }
+    }
 
-            if (angle < fieldOfViewAngle * 0.5f)
-            {
-                // Perform line-of-sight raycast check (obscured by walls/terminal geometry)
-                if (Physics.Raycast(transform.position + Vector3.up, directionToHazard, out RaycastHit hit, sensoryRadius))
-                {
-                    if (((1 << hit.collider.gameObject.layer) & hazardLayer) != 0)
-                    {
-                        detectedHazardLocation = hit.point;
-                        TriggerEmergencyPanic(detectedHazardLocation);
-                        break;
+    private bool CanSeeHazard(Vector3 targetPos)
+    {
+        float dist = Vector3.Distance(transform.position, targetPos);
+        if (dist < 5f) return true; 
+
+        float angle = Vector3.Angle(transform.forward, (targetPos - transform.position).normalized);
+        if (dist < detectionRadius && angle < visionAngle * 0.5f)
+        {
+            return !Physics.Linecast(transform.position + Vector3.up * 1.5f, targetPos + Vector3.up * 0.5f, obstacleLayer);
+        }
+        return false;
+    }
+
+    private void CommunicateWithNearbyAgents()
+    {
+        int cellX = Mathf.FloorToInt(transform.position.x / GridCellSize);
+        int cellZ = Mathf.FloorToInt(transform.position.z / GridCellSize);
+
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                int key = ((cellX + x) * 1000) + (cellZ + z);
+                if (_agentGrid.TryGetValue(key, out var neighbors)) {
+                    foreach (var neighbor in neighbors) {
+                        if (neighbor == this || Vector3.Distance(transform.position, neighbor.transform.position) > communicationRadius) continue;
+                        
+                        bool learned = false;
+                        foreach (var hazard in _knownHazards) {
+                            if (!neighbor._knownHazards.Contains(hazard)) {
+                                neighbor._knownHazards.Add(hazard);
+                                neighbor.InvalidateExitsBehindHazard(hazard);
+                                learned = true;
+                            }
+                        }
+                        if (learned) neighbor._isEvacuating = true;
                     }
                 }
             }
         }
     }
 
-    /// <summary>
-    /// Triggers cognitive delay routine, simulating the panic response before dynamic path calculation.
-    /// </summary>
-    public void TriggerEmergencyPanic(Vector3 hazardPos)
+    private void HandleEvacuationLogic()
     {
-        if (isPanicStateTriggered) return;
-        
-        isPanicStateTriggered = true;
-        currentState = AgentState.EmergencyPanic;
-        navAgent.isStopped = true;
-        detectedHazardLocation = hazardPos;
-
-        // Broadcast local panic hazard to nearby peer agents (P2P Information Cascade)
-        CascadeHazardKnowledgeToPeers(hazardPos);
-
-        // Transition to fleeing after cognitive friction timeout
-        StartCoroutine(CognitiveReactionDelayRoutine());
+        if (_agent.hasPath && IsPathSafe(_agent.path)) return;
+        FindSafestExit();
     }
 
-    private IEnumerator CognitiveReactionDelayRoutine()
+    private bool IsPathSafe(NavMeshPath path)
     {
-        yield return new WaitForSeconds(UnityEngine.Random.Range(cognitiveReactionDelay * 0.8f, cognitiveReactionDelay * 1.5f));
+        if (path.status != NavMeshPathStatus.PathComplete) return false;
         
-        navAgent.isStopped = false;
-        currentState = AgentState.FleeingToSafety;
-        CalculateAlternativeEvacuationRoute();
-    }
-
-    /// <summary>
-    /// Propagates hazard knowledge to nearby agents who lack direct line of sight.
-    /// Simulates social/crowd contagion.
-    /// </summary>
-    private void CascadeHazardKnowledgeToPeers(Vector3 hazardPos)
-    {
-        Collider[] peers = Physics.OverlapSphere(transform.position, communicationCascadeRadius, peerLayer);
-        foreach (var peerCol in peers)
-        {
-            if (peerCol.gameObject == this.gameObject) continue;
+        for (int i = 0; i < path.corners.Length - 1; i++) {
+            Vector3 start = path.corners[i]; 
+            Vector3 end = path.corners[i + 1];
+            int samples = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(start, end) / 3.0f)); 
             
-            PassengerSensoryFSM peerFSM = peerCol.GetComponent<PassengerSensoryFSM>();
-            if (peerFSM != null && !peerFSM.isPanicStateTriggered)
-            {
-                // Cascaded knowledge bypasses sensory checks, mimicking panic contagion
-                peerFSM.TriggerEmergencyPanic(hazardPos);
+            for (int j = 0; j <= samples; j++) {
+                Vector3 sample = Vector3.Lerp(start, end, (float)j / samples);
+                if (FireInstance.AllFirePositions.Any(f => (sample - f).sqrMagnitude < 36.0f)) return false;
+            }
+        }
+        return true;
+    }
+
+    private void FindSafestExit()
+    {
+        var validExits = Checkpoint.AllExits
+            .Where(e => !_invalidatedExits.Contains(e))
+            .OrderBy(e => Vector3.Distance(transform.position, e.transform.position));
+
+        foreach (var exit in validExits) {
+            NavMeshPath path = new NavMeshPath();
+            if (_agent.CalculatePath(exit.transform.position, path) && IsPathSafe(path)) {
+                _agent.SetPath(path);
+                return;
             }
         }
     }
-
-    private void CalculateAlternativeEvacuationRoute()
-    {
-        // Query safe zone exit positions using NavMesh.SamplePosition
-        Vector3 evacuationExit = EvacuationManager.Instance.GetNearestSafeExit(transform.position, detectedHazardLocation);
-        
-        NavMeshPath newPath = new NavMeshPath();
-        if (navAgent.CalculatePath(evacuationExit, newPath) && newPath.status == NavMeshPathStatus.PathComplete)
-        {
-            navAgent.SetPath(newPath);
-        }
-        else
-        {
-            // Fallback: flee in opposite direction of hazard
-            Vector3 oppositeDirection = (transform.position - detectedHazardLocation).normalized * 15.0f;
-            Vector3 fallbackDest = transform.position + oppositeDirection;
-            navAgent.SetDestination(fallbackDest);
-        }
-    }
-
-    private void UpdateNormalCheckpointPatrol()
-    {
-        if (navAgent.remainingDistance <= navAgent.stoppingDistance && !navAgent.pathPending)
-        {
-            currentCheckpointIndex = (currentCheckpointIndex + 1) % routeCheckpoints.Count;
-            navAgent.SetDestination(routeCheckpoints[currentCheckpointIndex]);
-        }
-    }
-
-    private void UpdateEvacuationRouting()
-    {
-        // Periodically verify path is not blocked by expanding fire grid
-        if (EvacuationManager.Instance.IsPathSegmentBlockedByFire(navAgent.path, hazardLayer))
-        {
-            CalculateAlternativeEvacuationRoute();
-        }
-    }
+}
 
     private void InitializeAirportCheckpointRoute()
     {
@@ -303,273 +272,262 @@ public class PassengerSensoryFSM : MonoBehaviour
     done: 'Core Technical Contributions:\n- Designed polymorphic weapon architecture using custom base classes.\n- Architected modular enemy framework with hierarchical AI behaviors.\n- Implemented Enum-based state machines and Physics2D raycast detection.\n- Enforced strict encapsulation and clean code principles throughout.',
     summary: 'Developed a scalable OOP-driven architecture in Unity, featuring a polymorphic weapon system, hierarchical AI frameworks for diverse enemy behaviors, and dynamic loot systems, all built on strict encapsulation principles for high code reusability and long-term maintainability.',
     challenge: 'Standard Unity game scripts often couple gameplay logic directly to MonoBehaviours, causing tightly bound, rigid classes that break under scope updates and make scaling enemy/weapon systems highly prone to bugs.',
-    architecture: 'Architected a fully decoupled polymorphic weapon hierarchy and an abstract hierarchical AI state machine. Enforced strict encapsulation where game systems communicate via centralized C# events rather than direct references.',
+    architecture: 'Architected a robust framework around the four pillars of OOP: Abstraction via interfaces (IDamageable), Encapsulation of core entity data, Inheritance for hierarchical entity management (Entity -> CombatEnemy), and Polymorphism for specialized behavior overrides.',
     tradeoff: 'Decoupling reduced codebase dependencies by 75%. Adding new modular weapons and enemy types was reduced from hours of debugging to minutes, requiring only a single subclass declaration with zero regression risks.',
     youtube: '6YwtFNX7aBQ',
-    codeTitle: 'PolymorphicWeapon.cs',
+    codeTitle: 'OOP Showcase Code Snippet',
     codeLanguage: 'csharp',
     codeSnippet: `using System;
-using System.Collections;
+using System;
 using UnityEngine;
 
-/// <summary>
-/// Abstract base class defining the polymorphic weapon contract.
-/// Fully decoupled from concrete implementations and utilizes event-based triggers to prevent tight coupling.
-/// </summary>
-public abstract class BaseWeapon : MonoBehaviour
+namespace PeterDefeater.Portfolio
 {
-    [Header("Base Weapon Configuration")]
-    [SerializeField] protected string weaponName = "Base Weapon";
-    [SerializeField] protected float fireRate = 0.25f;
-    [SerializeField] protected int magazineSize = 30;
-    [SerializeField] protected float reloadTime = 1.5f;
-
-    public event Action OnWeaponFired;
-    public event Action OnWeaponReloaded;
-    public event Action<int, int> OnAmmoChanged; // CurrentAmmo, MaxAmmo
-
-    protected int currentAmmo;
-    protected bool isReloading = false;
-    protected float lastFireTime = 0f;
-
-    protected virtual void Awake()
+    /// <summary>
+    /// ABSTRACTION: Interface defining what it means to be damageable.
+    /// Any class implementing this must provide logic for TakeDamage.
+    /// </summary>
+    public interface IDamageable
     {
-        currentAmmo = magazineSize;
-    }
-
-    protected virtual void OnEnable()
-    {
-        isReloading = false;
+        void TakeDamage(int damage);
+        bool IsDead { get; }
     }
 
     /// <summary>
-    /// Template method establishing the execution sequence for firing a weapon.
-    /// Subclasses override hooks to implement distinct shooting mechanics.
+    /// ENCAPSULATION & INHERITANCE: Abstract base class for all living things.
+    /// It encapsulates health logic and provides a foundation for derived entities.
     /// </summary>
-    public bool TryFire()
+    public abstract class Entity : MonoBehaviour, IDamageable
     {
-        if (isReloading) return false;
-        if (currentAmmo <= 0)
+        // ENCAPSULATION: Private field with a public property (Getter only)
+        [SerializeField] private int _maxHealth = 100;
+        private int _currentHealth;
+
+        public int CurrentHealth => _currentHealth;
+        public bool IsDead => _currentHealth <= 0;
+
+        protected virtual void Start()
         {
-            StartCoroutine(ReloadRoutine());
-            return false;
+            _currentHealth = _maxHealth;
         }
 
-        if (Time.time >= lastFireTime + fireRate)
+        // POLYMORPHISM: Virtual method that can be overridden by subclasses
+        public virtual void TakeDamage(int damage)
         {
-            lastFireTime = Time.time;
-            currentAmmo--;
-            
-            ExecuteProjectileMechanics();
-            
-            OnWeaponFired?.Invoke();
-            OnAmmoChanged?.Invoke(currentAmmo, magazineSize);
-            return true;
+            if (IsDead) return;
+
+            _currentHealth = Math.Max(0, _currentHealth - damage);
+            Debug.Log($"{gameObject.name} took {damage} damage. HP: {_currentHealth}");
+
+            if (IsDead)
+            {
+                Die();
+            }
         }
 
-        return false;
+        // ABSTRACTION: Subclasses MUST implement their own death logic
+        protected abstract void Die();
     }
 
     /// <summary>
-    /// Pure virtual polymorphic function implemented by concrete weapons.
-    /// Allows the game loop to fire arbitrary weapon entities blindly.
+    /// INHERITANCE & POLYMORPHISM: Specific implementation of an Enemy.
+    /// Inherits shared logic from Entity and provides specific behaviors.
     /// </summary>
-    protected abstract void ExecuteProjectileMechanics();
-
-    public void TriggerManualReload()
+    public class CombatEnemy : Entity
     {
-        if (!isReloading && currentAmmo < magazineSize)
+        [Header("Enemy Settings")]
+        [SerializeField] private float _moveSpeed = 5f;
+        [SerializeField] private GameObject _deathVFX;
+
+        // POLYMORPHISM: Overriding the abstract Die method from the base class
+        protected override void Die()
         {
-            StartCoroutine(ReloadRoutine());
+            Debug.Log("Enemy has fallen!");
+            
+            if (_deathVFX != null)
+            {
+                Instantiate(_deathVFX, transform.position, Quaternion.identity);
+            }
+
+            Destroy(gameObject);
+        }
+
+        // POLYMORPHISM: Overriding TakeDamage to add a "shield" or "armor" mechanic
+        public override void TakeDamage(int damage)
+        {
+            // Example of specialized logic: Enemies take 20% less damage
+            int mitigatedDamage = Mathf.RoundToInt(damage * 0.8f);
+            base.TakeDamage(mitigatedDamage);
+        }
+
+        private void Update()
+        {
+            if (!IsDead)
+            {
+                PerformAIBehavior();
+            }
+        }
+
+        private void PerformAIBehavior()
+        {
+            // Basic AI logic...
         }
     }
 
-    private IEnumerator ReloadRoutine()
+    /// <summary>
+    /// COMPOSITION: A separate class to handle combat interactions,
+    /// demonstrating how to interact with the IDamageable abstraction.
+    /// </summary>
+    public class CombatSystem : MonoBehaviour
     {
-        isReloading = true;
-        yield return new WaitForSeconds(reloadTime);
-        
-        currentAmmo = magazineSize;
-        isReloading = false;
-        
-        OnWeaponReloaded?.Invoke();
-        OnAmmoChanged?.Invoke(currentAmmo, magazineSize);
-    }
-}
-
-/// <summary>
-/// Concrete weapon implementation demonstrating Raycast firing mechanics (e.g., Hitscan).
-/// </summary>
-public class PolymorphicHitscanRifle : BaseWeapon
-{
-    [Header("Hitscan Settings")]
-    [SerializeField] private float weaponRange = 100f;
-    [SerializeField] private int baseDamage = 25;
-    [SerializeField] private LayerMask targetMask;
-    [SerializeField] private ParticleSystem muzzleFlash;
-    [SerializeField] private GameObject hitImpactPrefab;
-
-    protected override void ExecuteProjectileMechanics()
-    {
-        // Visual feedback
-        if (muzzleFlash != null) muzzleFlash.Play();
-
-        // Perform raycast check from camera viewport center
-        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        if (Physics.Raycast(ray, out RaycastHit hit, weaponRange, targetMask))
+        public void Attack(IDamageable target, int damage)
         {
-            // Resolve damage polymorphically on target components
-            IDamageable damageable = hit.collider.GetComponent<IDamageable>();
-            if (damageable != null)
-            {
-                damageable.TakeDamage(baseDamage);
-            }
-
-            // Spawn visual effect
-            if (hitImpactPrefab != null)
-            {
-                Instantiate(hitImpactPrefab, hit.point, Quaternion.LookRotation(hit.normal));
-            }
+            // We don't need to know IF the target is an Enemy or Player,
+            // we just need to know it is IDamageable (Polymorphism).
+            target.TakeDamage(damage);
         }
     }
 }
 
-public interface IDamageable
-{
-    void TakeDamage(int amount);
-}`
+`
   },
   {
     title: 'SHADER PROGRAMMING',
     isTech: true,
     bg: shaderBg,
-    description: 'A real-time cinematic scene driven by advanced GPU math and custom HLSL. Designed to create an oppressive environment, this project treats ancient magic as a reactive, hostile presence. By offloading complex volumetric and fluid calculations entirely to the GPU, the scene achieves high visual density without the performance costs of standard physics or heavy overdraw, running at a flawless 60–105 FPS on Cinematic scalabilities.',
-    learned: 'Unreal Engine 5, Custom HLSL, Procedural Raytracing, Niagara Systems, Performance Optimization, Post-Process Materials.',
-    done: 'Engineered a suite of custom mathematical shaders including a parallax ray-traced demon eye, procedural fire, and volume-less fluid simulation bypassing traditional rendering pipelines to maximize GPU performance.',
-    summary: 'A technical showcase of advanced GPU optimization featuring custom HLSL shaders for procedural ray-traced parallax effects, CPU-less volumetric fluid simulations, and mathematically driven fire effects (FBM) that eliminate overdraw while maintaining high Cinematic performance.',
-    challenge: 'Rendering highly detailed volumetric fluid, animated fire VFX, and ray-traced parallax elements in a scene causes severe overdraw and pixel-shader bottlenecks, dropping render performance below 30 FPS on standard configurations.',
-    architecture: 'Offloaded complex volume calculations entirely to custom HLSL pixel math shaders (Fractional Brownian Motion, procedural raymarching) inside Unreal Engine. Volume-less materials are computed purely on GPU, bypassing heavy particle meshes.',
-    tradeoff: 'Eliminating dynamic meshes and overdraw reduced GPU memory overhead by 80%. The highly dense, oppressive magical environment renders flawlessly at 60–105 FPS on Cinematic scalability settings.',
+    description: 'A real-time cinematic "Demon Eye" shader developed as a pre-production prototype on Shadertoy. Designed to create an oppressive environment, this project features a reactive, procedurally generated ocular system with pulsing veins, complex iris fibers, and a dynamic pupil.',
+    learned: 'GLSL, Ray-Sphere Intersection Math, Procedural Noise (Slit-Pupil), Spherical UV Mapping, Specular Blending, Unreal Engine 5 (Custom HLSL).',
+    done: 'Engineered a multi-layered procedural eye utilizing spherical raytracing and warped trigonometric fibers. Developed a dynamic pupil system that reacts to distance, subsequently porting the entire logic into Unreal Engine 5 using custom HLSL nodes for production.',
+    summary: 'A technical deep-dive into procedural biological rendering. This shader replaces heavy 3D meshes and 4K textures with pure GPU math, achieving infinite resolution for cinematic close-ups of magical entities with pulsing veins and dynamic dilation.',
+    challenge: 'Rendering high-fidelity, reactive eyes for cinematic characters usually requires complex textures and high-poly geometry, which lack true mathematical resolution for macro shots and are expensive to animate.',
+    architecture: 'Bypassed the standard rendering pipeline by offloading the entire ocular geometry and shading to a single pixel shader. Used ray-sphere intersection math and spherical UV mapping to render all detail entirely through procedural math.',
+    tradeoff: 'By using procedural math instead of textures, memory overhead was reduced to zero. The shader provides infinite detail for macro shots while running at maximum frame rates with minimal GPU overhead.',
     youtube: 'BtiMmb95DH4',
-    codeTitle: 'NiagaraProceduralVolumetrics.hlsl',
+    codeTitle: 'Pre-Production Prototype (Shadertoy GLSL)',
     codeLanguage: 'hlsl',
-    codeSnippet: `/**
- * Procedural Volumetric Raymarching HLSL Custom Node Function
- * Offloads complex CPU-less smoke and magical fluid volumetric math entirely to the GPU.
- * Bypasses heavy pixel-shader bottlenecks and eliminates particle overdraw.
- */
+    codeSnippet: `// Pre-production prototype developed in GLSL on Shadertoy.
+// Ported to HLSL for Unreal Engine 5 production.
 
-#ifndef VOLUMETRIC_RAYMARCHING_HLSL
-#define VOLUMETRIC_RAYMARCHING_HLSL
+#define saturate(x) clamp(x, 0.0, 1.0)
 
-// Pseudo-random 3D noise generator used for Fractional Brownian Motion
-float hash(float3 p)
-{
-    p = frac(p * 0.3183099 + 0.1);
-    p *= 17.0;
-    return frac(p.x * p.y * p.z * (p.x + p.y + p.z));
-}
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{ 
+    vec2 uv = (fragCoord - 0.5 * iResolution.xy) / iResolution.y;
+    
+    vec3 ro = vec3(0.0, 0.0, 3.0);       // Ray Origin (Equivalent to CameraWS)
+    vec3 rd = normalize(vec3(uv, -1.0)); // Ray Direction
+    vec3 SphereCenter = vec3(0.0, 0.0, 0.0);
+    
+    float EyeRadius = 1.0;
+    float PupilSize = 1.0;
+    float IrisSize = 1.0;
+    float TimeVal = iTime;
 
-// 3D Value Noise interpolation
-float noise(float3 x)
-{
-    float3 i = floor(x);
-    float3 f = frac(x);
-    f = f * f * (3.0 - 2.0 * f); // Hermite smoothstep curve interpolation
+    vec4 FinalColor = vec4(0.0);
 
-    return lerp(
-        lerp(lerp(hash(i + float3(0,0,0)), hash(i + float3(1,0,0)), f.x),
-             lerp(hash(i + float3(0,1,0)), hash(i + float3(1,1,0)), f.x), f.y),
-        lerp(lerp(hash(i + float3(0,0,1)), hash(i + float3(1,0,1)), f.x),
-             lerp(hash(i + float3(0,1,1)), hash(i + float3(1,1,1)), f.x), f.y), f.z
-    );
-}
+    float camDist = length(ro - SphereCenter);
+    float slitFactor = mix(4.0, 1.0, smoothstep(1.0, 5.0, camDist));
+    float DynamicPupilSize = PupilSize * mix(0.6, 1.0, smoothstep(1.0, 9.0, camDist));
 
-// Fractional Brownian Motion (3 Octaves) for realistic fluid turbulence
-float fbm(float3 p, float time)
-{
-    float v = 0.0;
-    float a = 0.5;
-    float3 shift = float3(100.0, 100.0, 100.0);
-    p.y -= time * 1.5; // Simulate upward buoyant rising
+    vec3 oc = ro - SphereCenter;
+    float b = dot(oc, rd);
+    float c = dot(oc, oc) - (EyeRadius * EyeRadius);
+    float h = b * b - c;
 
-    for (int i = 0; i < 3; ++i)
-    {
-        v += a * noise(p);
-        p = p * 2.0 + shift;
-        a *= 0.5;
+    if (h < 0.0) {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0); 
+        return; 
     }
-    return v;
-}
 
-// Volumetric Raymarcher inside custom pixel bounding volume
-float4 RaymarchVolume(
-    float3 CameraWorldPos, 
-    float3 PixelWorldPos, 
-    float3 BoxMin, 
-    float3 BoxMax,
-    float Time, 
-    float DensityMultiplier,
-    int MaxSteps)
-{
-    float3 rayDir = normalize(PixelWorldPos - CameraWorldPos);
-    float3 rayStart = PixelWorldPos;
-    
-    // Compute intersections with bounding box volume (AABB raymarching)
-    float3 t0 = (BoxMin - rayStart) / rayDir;
-    float3 t1 = (BoxMax - rayStart) / rayDir;
-    float3 tmin = min(t0, t1);
-    float3 tmax = max(t0, t1);
-    
-    float tNear = max(max(tmin.x, tmin.y), tmin.z);
-    float tFar = min(min(tmax.x, tmax.y), tmax.z);
-    
-    if (tNear > tFar || tFar < 0.0) return float4(0, 0, 0, 0);
-    
-    // Clamp raymarching boundaries to stay inside bounding region
-    float startT = max(0.0, tNear);
-    float stepLength = (tFar - startT) / float(MaxSteps);
-    
-    float accumulatedDensity = 0.0;
-    float3 accumulatedColor = float3(0, 0, 0);
-    float3 emissiveColor = float3(0.4, 0.74, 1.0); // Cyber blue magical energy
-
-    for (int i = 0; i < MaxSteps; i++)
-    {
-        float currentT = startT + float(i) * stepLength;
-        float3 samplePos = rayStart + rayDir * currentT;
-        
-        // Scale position for noise density sampling
-        float3 noiseCoords = samplePos * 0.05;
-        float localDensity = fbm(noiseCoords, Time) * DensityMultiplier;
-        
-        // Soft edge attenuation towards bounding box walls
-        float3 distToEdge = min(samplePos - BoxMin, BoxMax - samplePos);
-        float edgeFade = min(min(distToEdge.x, distToEdge.y), distToEdge.z) * 0.1;
-        localDensity *= saturate(edgeFade);
-        
-        if (localDensity > 0.01)
-        {
-            // Beer-Lambert Law approximation for volumetric light scattering
-            float transmittance = exp(-accumulatedDensity);
-            accumulatedDensity += localDensity * stepLength;
-            
-            // Add self-illuminated glow based on local density
-            accumulatedColor += emissiveColor * localDensity * transmittance * stepLength;
-        }
-        
-        // Performance break: early termination when opaque
-        if (accumulatedDensity >= 4.0)
-        {
-            accumulatedDensity = 4.0;
-            break;
-        }
+    float hitDistance = -b - sqrt(h);
+    if (hitDistance < 0.0) hitDistance = -b + sqrt(h);
+    if (hitDistance < 0.0) {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return; 
     }
-    
-    return float4(accumulatedColor, accumulatedDensity / 4.0);
-}
 
-#endif // VOLUMETRIC_RAYMARCHING_HLSL`
+    vec3 p = ro + rd * hitDistance;
+
+    vec3 Normal = normalize(p - SphereCenter);
+    vec3 Forward = normalize(ro - SphereCenter);
+    
+    vec3 WorldUp = vec3(0.0, 1.0, 0.0); 
+
+    if (abs(dot(Forward, WorldUp)) > 0.99) {
+        WorldUp = vec3(1.0, 0.0, 0.0);
+    }
+
+    vec3 Right = normalize(cross(WorldUp, Forward));
+    vec3 Up = normalize(cross(Forward, Right));
+    vec3 EyeSpaceNormal = vec3(dot(Normal, Right), dot(Normal, Up), dot(Normal, Forward));
+
+    float radius = acos(EyeSpaceNormal.z); 
+    float angle = atan(EyeSpaceNormal.y, EyeSpaceNormal.x); 
+
+    // --- 1. SCLERA ---
+    vec3 ScleraBase = vec3(0.95, 0.95, 0.95);
+    float veinDistortion = sin(radius * 15.0) + cos(angle * 10.0);
+    float veinPattern = sin(angle * 40.0 + veinDistortion * 3.0);
+
+    float veinThrob = 0.85 + sin(TimeVal * 4.0) * 0.05; 
+    float veins = smoothstep(veinThrob, 1.0, veinPattern); 
+
+    float veinMask = smoothstep(0.28 * IrisSize, 0.8, radius);
+    vec3 VeinColor = vec3(0.7, 0.1, 0.1); 
+    vec3 ScleraFinal = mix(ScleraBase, VeinColor, veins * veinMask);
+
+    // --- 2. IRIS ---
+    float waveWarp = sin(radius * 50.0) * 0.08 + cos(angle * 15.0) * 0.03;
+    float warpedAngle = angle + waveWarp;
+
+    float fiber1 = sin(warpedAngle * 45.0) * 0.5 + 0.5;
+    float fiber2 = sin((angle - waveWarp) * 90.0) * 0.5 + 0.5;
+
+    float collaretteJitter = sin(angle * 20.0) * 0.02;
+    float collaretteRadius = 0.16 * IrisSize + collaretteJitter;
+
+    vec3 IrisInner = vec3(0.85, 0.4, 1.0); 
+    vec3 IrisOuter = vec3(0.15, 0.0, 0.4); 
+
+    vec3 IrisBaseColor = mix(IrisInner, IrisOuter, smoothstep(0.1 * IrisSize, 0.3 * IrisSize, radius));
+
+    float depthShadow = smoothstep(0.0, 0.06, abs(radius - collaretteRadius));
+    vec3 IrisFinal = IrisBaseColor * mix(fiber1, fiber2, 0.5) * (0.4 + 0.6 * depthShadow);
+
+    float limbalRing = smoothstep(0.26 * IrisSize, 0.3 * IrisSize, radius);
+    IrisFinal = mix(IrisFinal, vec3(0.05, 0.0, 0.15), limbalRing);
+
+    // --- 3. PUPIL ---
+    vec2 pupilUV = vec2(EyeSpaceNormal.x * slitFactor, EyeSpaceNormal.y);
+    float pupilDist = length(pupilUV);
+
+    float pupilAO = smoothstep(0.06 * DynamicPupilSize, 0.1 * DynamicPupilSize, pupilDist);
+    vec3 PupilFinal = mix(vec3(0.0, 0.0, 0.0), vec3(0.08, 0.02, 0.15), pupilAO);
+
+    // --- MIXING ---
+    float isIris = 1.0 - smoothstep(0.29 * IrisSize, 0.3 * IrisSize, radius); 
+    float isPupil = 1.0 - smoothstep(0.09 * DynamicPupilSize, 0.1 * DynamicPupilSize, pupilDist);
+
+    vec3 EyeColor = ScleraFinal;
+    EyeColor = mix(EyeColor, IrisFinal, isIris);
+    EyeColor = mix(EyeColor, PupilFinal, isPupil);
+
+    float softShadow = smoothstep(-0.2, 1.0, EyeSpaceNormal.z);
+
+    // --- 4. WET CORNEA SPECULAR ---
+    vec3 LightDir = normalize(vec3(0.5, 0.5, 0.8));
+    vec3 ViewDir = normalize(ro - p);
+    vec3 HalfDir = normalize(LightDir + ViewDir);
+
+    float specPrimary = pow(max(dot(Normal, HalfDir), 0.0), 250.0) * 0.85;
+    float specSecondary = pow(max(dot(Normal, HalfDir), 0.0), 40.0) * 0.15;
+    vec3 WetGlint = vec3(1.0, 1.0, 1.0) * (specPrimary + specSecondary);
+
+    FinalColor.rgb = (EyeColor * softShadow) + WetGlint;
+    FinalColor.a = 1.0; 
+
+    fragColor = saturate(FinalColor);
+}`
   }
 ]
 
